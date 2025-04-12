@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import Button from '../../components/common/Button';
 import DocumentForm from '../../components/admin/DocumentForm';
 import { useToast } from '../../hooks/useToast';
-import { Input } from '../../components/ui/input';
+import InputField from '../../components/common/InputField';
+import PageHeader from '../../components/common/PageHeader';
 
 export default function AdminDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -100,81 +100,82 @@ export default function AdminDocuments() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Documents</h1>
-        <Button
-          onClick={handleAddNewDocument}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
-        >
-          Add New Document
-        </Button>
-      </div>
+    <div className="py-6">
+      <PageHeader title="Manage Documents" />
 
-      {isFormOpen && (
-        <div className="mb-8">
-          <DocumentForm
-            onDocumentCreated={handleDocumentCreated}
-            initialDocument={initialDocument}
-          />
-          <Button
-            onClick={handleCancelForm}
-            className="mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow hover:bg-gray-300 focus:ring-2 focus:ring-gray-400"
-          >
-            Cancel
-          </Button>
-        </div>
-      )}
-
-      <div className="mb-4">
-        <Input
+      <div className="mt-6 flex justify-between items-center">
+        <InputField
           type="text"
           placeholder="Search documents..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="max-w-sm"
         />
+        <Button variant="primary" onClick={handleAddNewDocument}>
+          <PlusIcon className="h-4 w-4 mr-2" />
+          Add Document
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredDocuments.map((document) => (
-          <Card
-            key={document.id}
-            className="hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
-          >
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-800">
-                {document.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>Subject:</strong> {document.subject}
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                <strong>Description:</strong> {document.description}
-              </p>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleEdit(document.id)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 focus:ring-2 focus:ring-yellow-400"
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(document.id, document.file_path)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 focus:ring-2 focus:ring-red-400"
-                >
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {isFormOpen && (
+        <div className="mt-6 p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold mb-4">
+            {editDocumentId ? 'Edit Document' : 'Add New Document'}
+          </h2>
+          <DocumentForm
+            onDocumentCreated={handleDocumentCreated}
+            initialDocument={initialDocument}
+          />
+          <div className="flex justify-end mt-4">
+            <Button variant="secondary" onClick={handleCancelForm}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 overflow-x-auto">
+        <table className="min-w-full bg-white rounded-lg shadow-md">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredDocuments.map((document) => (
+              <tr key={document.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{document.title}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{document.subject}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">{document.description}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <Button variant="secondary" size="sm" onClick={() => handleEdit(document.id)}>Edit</Button>
+                  <Button variant="destructive" size="sm" className="ml-2" onClick={() => handleDelete(document.id, document.file_path)}>Delete</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
+  );
+}
+
+function PlusIcon(props) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+        clipRule="evenodd"
+      />
+    </svg>
   );
 }

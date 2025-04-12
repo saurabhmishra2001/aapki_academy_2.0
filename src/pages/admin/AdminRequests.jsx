@@ -1,19 +1,10 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../utils/firebaseConfig';
-import { Card, CardContent } from '@mui/material';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper,
-  Button,
-  Typography,
-  Box
-} from '@mui/material';
+import { Button } from "../../components/common/Button";
+import { useToast } from "../../hooks/useToast";
+import { PageHeader } from "../../components/common/PageHeader";
+import { MainLayout } from "../../components/layout/MainLayout";
 
 export default function AdminRequests() {
   const [requests, setRequests] = useState([]);
@@ -21,6 +12,7 @@ export default function AdminRequests() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    document.body.classList.add('admin-sidebar-open');
     fetchRequests();
   }, []);
 
@@ -36,6 +28,7 @@ export default function AdminRequests() {
         ...doc.data()
       }));
       setRequests(requestsList);
+      console.log("Fetched requests:", requestsList);
       setError(null);
     } catch (err) {
       console.error('Error fetching requests:', err);
@@ -46,10 +39,12 @@ export default function AdminRequests() {
   };
 
   const handleApprove = async (requestId) => {
+    console.log("Approving request:", requestId);
     try {
       await updateDoc(doc(db, 'userRequests', requestId), {
         status: 'Approved',
         updated_at: new Date()
+      
       });
       fetchRequests();
     } catch (err) {
@@ -59,6 +54,7 @@ export default function AdminRequests() {
   };
 
   const handleReject = async (requestId) => {
+    console.log("Rejecting request:", requestId);
     try {
       await updateDoc(doc(db, 'userRequests', requestId), {
         status: 'Rejected',
@@ -71,80 +67,93 @@ export default function AdminRequests() {
     }
   };
 
-  if (loading) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>Loading requests...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            User Requests
-          </Typography>
-          
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+      <MainLayout>
+        <PageHeader title="Admin Requests" />
+        {loading ? (
+          <div className="text-center py-8">
+            <p>Loading requests...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-lg shadow-md">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>{request.user_email}</TableCell>
-                    <TableCell>{request.type}</TableCell>
-                    <TableCell>{request.status}</TableCell>
-                    <TableCell>
+                  <tr key={request.id}>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{request.user_email}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{request.type}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        request.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {request.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(request.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                       {request.status === 'Pending' && (
-                        <>
+                        <div className="flex space-x-2">
                           <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
                             onClick={() => handleApprove(request.id)}
-                            sx={{ mr: 1 }}
+                            variant="success"
+                            size="sm"
                           >
                             Approve
                           </Button>
                           <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
                             onClick={() => handleReject(request.id)}
+                            variant="error"
+                            size="sm"
                           >
                             Reject
                           </Button>
-                        </>
+                        </div>
                       )}
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
-    </Box>
-  );
+              </tbody>
+            </table>
+            {requests.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No requests found.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </MainLayout>
+    );
+  
 }
+

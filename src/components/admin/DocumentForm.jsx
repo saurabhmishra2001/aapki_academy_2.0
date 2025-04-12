@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { InputField } from '../../components/common/InputField';
 import { Alert } from '../ui/alert';
 import { adminService } from '../../services/adminService';
 import { useToast } from '../../hooks/useToast';
 
 export default function DocumentForm({ onDocumentCreated, initialDocument }) {
   const navigate = useNavigate();
+  const [titleError, setTitleError] = useState('');
+  const [subjectError, setSubjectError] = useState('');
+  const [fileError, setFileError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
     description: '',
     file: null
   });
-  const [error, setError] = useState('');
+  const [submissionError, setSubmissionError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,9 +31,39 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setSubmissionError('');
+    setTitleError('');
+    setSubjectError('');
+    setFileError('');
+
+    // Validate form fields
+    let isValid = true;
+    if (!formData.title.trim()) {
+      setTitleError('Title is required');
+      isValid = false;
+    }
+    if (!formData.subject.trim()) {
+      setSubjectError('Subject is required');
+      isValid = false;
+    }
+    if (!formData.file && !initialDocument) {
+      setFileError('File is required');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      setLoading(false);
+      return;
+    }
+
+    const dataToSubmit = initialDocument
+      ? { ...formData, file: formData.file || initialDocument.file } // Keep existing file if not updated
+      : formData;
 
     try {
+      if (!dataToSubmit.file) {
+        delete dataToSubmit.file;
+      }
       if (initialDocument) {
         await adminService.updateDocument(initialDocument.id, formData);
       } else {
@@ -41,14 +75,9 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
         type: 'success',
       });
       onDocumentCreated();
-      setFormData({
-        title: '',
-        subject: '',
-        description: '',
-        file: null
-      });
+
     } catch (err) {
-      setError(err.message);
+      setSubmissionError(err.message);
     } finally {
       setLoading(false);
     }
@@ -59,74 +88,65 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Upload Document</h2>
 
       <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive" className="text-sm font-medium">
               {error}
             </Alert>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <Input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
+          <InputField
+            label="Title"
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+            required
+            placeholder="Enter document title"
+            error={titleError}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Subject</label>
-            <Input
-              type="text"
-              value={formData.subject}
-              onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))}
-              required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
+          <InputField
+            label="Subject"
+            type="text"
+            value={formData.subject}
+            onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))}
+            required
+            placeholder="Enter document subject"
+            error={subjectError}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
+          <InputField
+            label="Description"
+            type="textarea"
+            value={formData.description}
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+            rows={3}
+            placeholder="Enter document description"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">File</label>
-            <Input
-              type="file"
-              onChange={(e) => setFormData((prev) => ({ ...prev, file: e.target.files[0] }))}
-              required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
+          <InputField
+            label={initialDocument ? "Replace File" : "File"}
+            type="file"
+            onChange={(e) => setFormData((prev) => ({ ...prev, file: e.target.files[0] }))}
+            required={!initialDocument}
+          />
+          {fileError && <p className="text-red-500 text-sm mt-1">{fileError}</p>}
 
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/admin/documents')}
-              className="bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-2 focus:ring-gray-400"
-            >
+          <div className="flex justify-end space-x-4 pt-4">
+            <Button type="button" variant="outline" onClick={() => navigate('/admin/documents')}>
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
             >
-              {loading ? 'Uploading...' : 'Upload Document'}
-            </Button>
-          </div>
+              {loading ? 'Saving...' : 'Save Document'}
+             </Button>
+         </div>
         </form>
       </div>
+
     </div>
   );
 }
+            

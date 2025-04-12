@@ -7,25 +7,33 @@ import { Alert } from '../../ui/alert';
 import { useToast } from '../../../hooks/useToast';
 import { Label } from '../../ui/label';
 
+
 export default function TestForm({ onTestCreated, initialTest }) {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateField = (name, value) => {
+    let error = '';
+    // Add validation logic here
+    return error;
+  };
   const [test, setTest] = useState({
     title: '',
     description: '',
     duration: 60,
     total_marks: 100,
-    passing_marks: 40,
+    passing_marks: 40,    
     start_time: '',
     end_time: '',
     questions: []
   });
   const { toast } = useToast();
-  const [controller, setController] = useState(null);
+  const controller = new AbortController();
 
   useEffect(() => {
-    if (initialTest) {
+      if (initialTest) {
       setTest({
         ...initialTest,
         start_time: initialTest.start_time ? new Date(initialTest.start_time).toISOString().slice(0, 16) : '',
@@ -33,36 +41,73 @@ export default function TestForm({ onTestCreated, initialTest }) {
         questions: initialTest.questions || [],
       });
     }
-    const abortController = new AbortController();
-    setController(abortController);
-    return () => abortController.abort();
   }, [initialTest]);
 
+  const validateQuestion = (question) => {
+    const questionErrors = {};
+    if (!question.question_text) questionErrors.question_text = 'Question text is required';
+    if (question.options.some(option => !option)) questionErrors.options = 'All options are required';
+    if (!question.correct_answer) questionErrors.correct_answer = 'Correct answer is required';
+    if (question.marks <= 0) questionErrors.marks = 'Marks must be greater than 0';
+    return questionErrors;
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    const errors = {};
+    if (!test.title) {
+      errors.title = 'Title is required';
+    }
+    if (!test.description) {
+      errors.description = 'Description is required';
+    }
+    if (test.duration <= 0) {
+      errors.duration = 'Duration must be greater than 0';
+    }
+    if (test.total_marks <= 0) {
+      errors.total_marks = 'Total marks must be greater than 0';
+    }
+    if (test.passing_marks <= 0 || test.passing_marks > test.total_marks) {
+      errors.passing_marks = 'Passing marks must be between 1 and total marks';
+    }
+    if (!test.start_time) {
+      errors.start_time = 'Start time is required';
+    }
+    if (!test.end_time) {
+      errors.end_time = 'End time is required';
+    }
+    if (new Date(test.end_time) <= new Date(test.start_time)) {
+      errors.end_time = 'End time must be after start time';
+    }
+    for (let i = 0; i < test.questions.length; i++) {
+      const questionErrors = validateQuestion(test.questions[i]);
+      
+      // Check if the correct answer is one of the options
+      if (!test.questions[i].options.includes(test.questions[i].correct_answer)) {
+          questionErrors.correct_answer = 'Correct answer must be one of the options';
+      }
+      if (test.questions[i].marks > test.total_marks) {
+      }
+      if (Object.keys(questionErrors).length > 0) {
+        errors.questions = errors.questions || {};
+        errors.questions[i] = questionErrors;
+      }
+    }
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }  
 
     try {
-      await testService.createTest(test, controller.signal);
-      toast({
-        title: 'Success',
-        description: 'Test created successfully',
-        type: 'success',
-      });
-      onTestCreated();
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError(err.message);
-        toast({
-          title: 'Error',
-          description: err.message,
-          type: 'error',
-        });
-      }
-    } finally {
+      e.preventDefault();
+      setLoading(true);
+      setError('');
+      await testService.createTest(test, controller.signal)
+      onTestCreated()
+    }catch(e){
+      setError(e.message);
+    }finally{
       setLoading(false);
-    }
+    }    
   };
 
   const addQuestion = () => {
@@ -108,8 +153,8 @@ export default function TestForm({ onTestCreated, initialTest }) {
           <div className="space-y-4">
             <div>
               <Label>Title</Label>
-              <Input
-                value={test.title}
+              <Input                
+                value={test.title}                
                 onChange={e => setTest(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter test title"
                 required
@@ -166,8 +211,8 @@ export default function TestForm({ onTestCreated, initialTest }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Start Time</Label>
-                <Input
-                  type="datetime-local"
+                <Input                  
+                  type="datetime-local"                  
                   value={test.start_time}
                   onChange={e => setTest(prev => ({ ...prev, start_time: e.target.value }))}
                   required
@@ -176,8 +221,8 @@ export default function TestForm({ onTestCreated, initialTest }) {
 
               <div>
                 <Label>End Time</Label>
-                <Input
-                  type="datetime-local"
+                <Input                  
+                  type="datetime-local"                  
                   value={test.end_time}
                   onChange={e => setTest(prev => ({ ...prev, end_time: e.target.value }))}
                   required
@@ -205,11 +250,15 @@ export default function TestForm({ onTestCreated, initialTest }) {
           </Button>
         </div>
 
+        {formErrors.questions && formErrors.questions.length === 0 && (
+        <p className="text-red-500 text-sm mt-2 px-6">All question fields must be valid.</p>
+        )}        
+
         <div className="p-6 space-y-6">
           {test.questions.length === 0 ? (
             <div className="text-center p-8 bg-gray-50 rounded-lg">
               <p className="text-gray-500">No questions added yet</p>
-            </div>
+            </div>            
           ) : (
             test.questions.map((question, qIndex) => (
               <div key={qIndex} className="border rounded-xl p-6 bg-gray-50 relative">
@@ -228,7 +277,12 @@ export default function TestForm({ onTestCreated, initialTest }) {
                   </Button>
                 </div>
 
-                <div className="space-y-4">
+                {formErrors.questions && formErrors.questions[qIndex] && (
+                    <p className="text-red-500 text-sm mt-2 px-4">Some fields in this question are invalid.</p>
+                )}
+
+
+                <div className="space-y-4 px-4">
                   <div>
                     <Label>Question Text</Label>
                     <textarea
@@ -236,8 +290,13 @@ export default function TestForm({ onTestCreated, initialTest }) {
                       onChange={e => updateQuestionField(qIndex, 'question_text', e.target.value)}
                       className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       rows={2}
-                      required
-                    />
+                      required                      
+                      placeholder="Enter the question text"
+                      />
+                      {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].question_text && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].question_text}</p>
+                      )}                                            
+                  
                   </div>
 
                   <div className="space-y-2">
@@ -245,45 +304,72 @@ export default function TestForm({ onTestCreated, initialTest }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {question.options.map((option, oIndex) => (
                         <div key={oIndex} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                          <input
-                            type="radio"
-                            name={`correct-${qIndex}`}
-                            checked={question.correct_answer === option}
-                            onChange={() => updateQuestionField(qIndex, 'correct_answer', option)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                            required
-                          />
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`correct-${qIndex}`}
+                              checked={question.correct_answer === option}
+                              onChange={() => updateQuestionField(qIndex, 'correct_answer', option)}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                              required
+                            />                            
+                            
+                            
+                            
+                            <span className="ml-2 text-gray-600">Option {oIndex + 1}</span>                            
+                          </div>
+                          
                           <Input
                             type="text"
                             value={option}
-                            onChange={e => updateQuestionOption(qIndex, oIndex, e.target.value)}
                             placeholder={`Option ${oIndex + 1}`}
+                            onChange={e => updateQuestionOption(qIndex, oIndex, e.target.value)}
                             className="border-0 shadow-none focus:ring-0 p-0"
-                            required
+                            required                            
                           />
+                                                    
                         </div>
+                        
+                        
+                        
+                        
+                        
+                        
                       ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <Label>Explanation</Label>
                       <textarea
                         value={question.explanation}
                         onChange={e => updateQuestionField(qIndex, 'explanation', e.target.value)}
                         className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        rows={2}
-                      />
+                        rows={2}                        
+                        placeholder="Enter explanation for the correct answer"
+                        />
+                        {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].options && (
+                            <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].options}</p>
+                        )}
+                        {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].correct_answer && (
+                            <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].correct_answer}</p>
+                        )}                                                                      
+                                           
                     </div>
+                    
+                    
                     <div>
                       <Label>Marks</Label>
                       <Input
                         type="number"
-                        min="1"
+                        min="1"                        
                         value={question.marks}
+                        
                         onChange={e => updateQuestionField(qIndex, 'marks', parseInt(e.target.value, 10))}
-                        className="w-24"
+                        className="w-24 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        
+                        
                       />
                     </div>
                   </div>
@@ -306,6 +392,7 @@ export default function TestForm({ onTestCreated, initialTest }) {
           type="submit" 
           disabled={loading}
           className="gap-2"
+          onClick={handleSubmit}
         >
           {loading && <Spinner className="h-4 w-4" />}
           {loading ? 'Saving...' : 'Save Test'}
