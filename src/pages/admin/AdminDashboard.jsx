@@ -1,100 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
-import DataCard from '../../components/common/DataCard';
-import PageHeader from '../../components/common/PageHeader';
+import React, { useState } from 'react';
+import {
+  // MUI Components
+  Box,
+  Grid,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  CircularProgress,
+  Alert,
+  Avatar,
+  TextField,
+  InputAdornment,
+  Button,
+  Menu,
+  MenuItem,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Pagination,
+  Paper,
+  Chip
+} from '@mui/material';
+
+import {
+  // MUI Icons
+  Dashboard as DashboardIcon,
+  Article as DocumentsIcon,
+  Quiz as TestsIcon,
+  VideoLibrary as VideosIcon,
+  School as CoursesIcon,
+  Notifications as NotificationsIcon,
+  BarChart as ChartBarIcon,
+  FilterList as FilterIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalTests: 0,
-    totalVideos: 0,
-    totalDocuments: 0,
-    totalRequests: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const statsData = await adminService.getDashboardStats();
-        setStats(statsData);
-      } catch (err) {
-        setError('Failed to fetch dashboard statistics.');
-        console.error('Error fetching dashboard stats:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-    fetchStats();
-  }, []);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-  const dataCards = [
-    {
-      title: 'Total Users',
-      value: stats.totalUsers,
-      icon: 'users',
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'Total Tests',
-      value: stats.totalTests,
-      icon: 'test',
-      color: 'bg-green-500',
-    },
-    {
-      title: 'Total Videos',
-      value: stats.totalVideos,
-      icon: 'video',
-      color: 'bg-red-500',
-    },
-    {
-      title: 'Total Documents',
-      value: stats.totalDocuments,
-      icon: 'document',
-      color: 'bg-yellow-500',
-    },
-    {
-      title: 'Total Requests',
-      value: stats.totalRequests,
-      icon: 'request',
-      color: 'bg-purple-500',
-    },
-  ];
+  const handleDialogOpen = () => {
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
 
   return (
-    <div className="container mx-auto p-6">
-      <PageHeader title="Admin Dashboard" />
+    <Box sx={{ padding: '20px' }}>
+      <Typography variant="h4" gutterBottom>
+        Admin Dashboard
+      </Typography>
 
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading statistics...</p>
-        </div>
-      )}
+      {/* Search & Filter Section */}
+      <Box sx={{ display: 'flex', gap: '10px', marginBottom: 2 }}>
+        <TextField
+          label="Search"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Button variant="contained" startIcon={<FilterIcon />} onClick={handleMenuOpen}>
+          Filter
+        </Button>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+          <MenuItem onClick={handleMenuClose}>Filter Option 1</MenuItem>
+          <MenuItem onClick={handleMenuClose}>Filter Option 2</MenuItem>
+        </Menu>
+      </Box>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Error:</strong> {error}
-        </div>
-      )}
+      {/* Stats Overview */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ padding: 2, textAlign: 'center' }}>
+            <Avatar>
+              <DashboardIcon />
+            </Avatar>
+            <Typography variant="h6">Dashboard</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ padding: 2, textAlign: 'center' }}>
+            <Avatar>
+              <VideosIcon />
+            </Avatar>
+            <Typography variant="h6">Videos</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ padding: 2, textAlign: 'center' }}>
+            <Avatar>
+              <CoursesIcon />
+            </Avatar>
+            <Typography variant="h6">Courses</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ padding: 2, textAlign: 'center' }}>
+            <Avatar>
+              <TestsIcon />
+            </Avatar>
+            <Typography variant="h6">Tests</Typography>
+          </Paper>
+        </Grid>
+      </Grid>
 
-      {!loading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {dataCards.map((card, index) => (
-            <DataCard
-              key={index}
-              title={card.title}
-              value={card.value}
-              icon={card.icon}
-              color={card.color}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      {/* Notifications */}
+      <Box sx={{ marginTop: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Notifications
+        </Typography>
+        <List>
+          <ListItem>
+            <ListItemText primary="New user signed up" secondary="2 minutes ago" />
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <ListItemText primary="Course updated" secondary="10 minutes ago" />
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <ListItemText primary="System maintenance scheduled" secondary="1 hour ago" />
+          </ListItem>
+        </List>
+      </Box>
+
+      {/* Dialog Example */}
+      <Button variant="contained" color="primary" onClick={handleDialogOpen} sx={{ marginTop: 2 }}>
+        Open Dialog
+      </Button>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>Example Dialog</DialogTitle>
+        <DialogContent>
+          <Typography>This is a sample dialog.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Pagination Example */}
+      
+    </Box>
   );
 };
 

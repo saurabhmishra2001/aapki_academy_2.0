@@ -159,7 +159,7 @@ export default function Navbar() {
           >
             {currentNavItems.map((item) => (
               item.subItems ? (
-                <>
+                <Box>
                   <Button
                     key={item.text}
                     onClick={handleAdminMenuOpen}
@@ -189,7 +189,7 @@ export default function Navbar() {
                       </MenuItem>
                     ))}
                   </Menu>
-                </>
+                </Box>
               ) : (
                 <Button
                   key={item.path}
@@ -219,7 +219,7 @@ export default function Navbar() {
 
             {/* User Section */}
             {user ? (
-              <>
+              <Box>
                 {/* User Menu */}
                 <IconButton
                   onClick={handleUserMenuOpen}
@@ -277,9 +277,9 @@ export default function Navbar() {
                     <ListItemText>Logout</ListItemText>
                   </MenuItem>
                 </Menu>
-              </>
+              </Box>
             ) : (
-              <>
+              <Box>
                 <Button
                   component={Link}
                   to="/login"
@@ -302,7 +302,7 @@ export default function Navbar() {
                 >
                   Sign Up
                 </Button>
-              </>
+              </Box>
             )}
           </Stack>
 
@@ -375,7 +375,7 @@ export default function Navbar() {
               ))}
 
               {user ? (
-                <>
+                <Box>
                   <MenuItem
                     onClick={() => {
                       handleMobileMenuClose();
@@ -400,9 +400,9 @@ export default function Navbar() {
                     <ListItemIcon><LogoutIcon /></ListItemIcon>
                     <ListItemText>Logout</ListItemText>
                   </MenuItem>
-                </>
+                </Box>
               ) : (
-                <>
+                <Box>
                   <MenuItem
                     component={Link}
                     to="/login"
@@ -419,7 +419,7 @@ export default function Navbar() {
                     <ListItemIcon><PersonAddIcon /></ListItemIcon>
                     <ListItemText>Sign Up</ListItemText>
                   </MenuItem>
-                </>
+                </Box>
               )}
             </Menu>
           </Box>

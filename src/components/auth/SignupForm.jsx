@@ -3,8 +3,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { 
-    Button, Typography, Box, Divider
-} from '@mui/material'; // Keeping these for layout and basic elements
+  Button, 
+  TextField, 
+  Typography, 
+  Box, 
+  Divider,
+  useTheme 
+} from '@mui/material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 import { signupWithEmail, loginWithGoogle } from '../../services/authService';
 
 const SignupForm = () => {
@@ -12,13 +18,13 @@ const SignupForm = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         displayName: '',
-        email:        '',
-        password:     '',
+        email: '',
+        password: '',
         confirmPassword: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -27,46 +33,45 @@ const SignupForm = () => {
     };
 
     const handleAuthError = (error) => {
-        const errorCode = error.code;
-        switch (errorCode) {
-        case 'auth/email-already-in-use':
-            setError('Email already in use.');
-            break;
-        case 'auth/invalid-email':
-            setError('Invalid email address.');
-            break;
-        case 'auth/weak-password':
-            setError('Password should be at least 6 characters.');
-            break;
-        case 'auth/popup-closed-by-user':
-            setError('Google sign-in was canceled.');
-            break;
-        case 'auth/operation-not-allowed':
-            setError('Email/password accounts are not enabled.');
-            break;
-        default:
-            setError('Signup failed. Please try again.');
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                setError('Email already in use');
+                break;
+            case 'auth/invalid-email':
+                setError('Invalid email address');
+                break;
+            case 'auth/weak-password':
+                setError('Password should be at least 6 characters');
+                break;
+            case 'auth/popup-closed-by-user':
+                setError('Google sign-up was canceled');
+                break;
+            case 'auth/operation-not-allowed':
+                setError('Email/password accounts are not enabled');
+                break;
+            default:
+                setError('Signup failed. Please try again.');
         }
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        
+
         // Client-side validation
         if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match.');
+            setError("Passwords don't match");
             setLoading(false);
             return;
         }
-        
+
         if (formData.password.length < 6) {
             setError("Password must be at least 6 characters");
             setLoading(false);
-        return;
+            return;
         }
-        
+
         try {
             const { user, error } = await signupWithEmail(
                 formData.email,

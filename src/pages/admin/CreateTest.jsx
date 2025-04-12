@@ -1,65 +1,75 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '../../components/ui/button';
-import { Alert } from '../../components/ui/alert';
-import TestForm from '../../components/admin/forms/TestForm';
-import { useToast } from '../../hooks/useToast';
-import { testService } from '../../services/testService';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Alert } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import TestForm from '@/components/admin/forms/TestForm';
+import { useToast } from '@/hooks/useToast';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
-export default function CreateTest() {
+export default function CreateTestPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const testId = searchParams.get('testId');
-  const [initialTest, setInitialTest] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { toast } = useToast();
-
-  useEffect(() => {
-    document.body.classList.add('admin-sidebar-open');
-    return () => document.body.classList.remove('admin-sidebar-open');
-  }, []);
-
-  useEffect(() => {
-    const fetchTest = async () => {
-      if (testId) {
-        try {
-          setLoading(true)
-          const testData = await testService.getTestWithQuestions(testId)
-          setInitialTest(testData)
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: error.message,
-            type: 'error',
-          });
-        }
-      }
-    }
-
-    fetchTest()
-  }, [testId, toast])
 
   const handleTestCreated = () => {
     toast({
       title: 'Success',
       description: 'Test created successfully',
-      type: 'success',
     });
     navigate('/admin/tests');
   };
 
-  const breadcrumbs = [
-    { label: 'Admin', link: '/admin/dashboard' },
-    { label: 'Tests', link: '/admin/tests' },
-    { label: testId ? 'Edit Test' : 'Create New Test' },
-  ];
   return (
-  
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">
-          {testId ? 'Edit Test' : 'Create New Test'}
-        </h1>
-        <TestForm onTestCreated={handleTestCreated} initialTest={initialTest} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <Breadcrumb className="mb-6 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink to="/admin" className="text-blue-600 hover:text-blue-800">
+                Dashboard
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink to="/admin/tests" className="text-blue-600 hover:text-blue-800">
+                Tests
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink className="text-gray-600">Create Test</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6 border border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">{error}</span>
+          </Alert>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          {loading ? (
+            <CardContent className="flex items-center justify-center p-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading test data...</p>
+              </div>
+            </CardContent>
+          ) : (
+            <TestForm onTestCreated={handleTestCreated} />
+          )}
+        </div>
       </div>
-  
+    </div>
   );
 }
