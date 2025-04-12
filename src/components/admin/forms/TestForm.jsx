@@ -7,136 +7,101 @@ import { Alert } from '../../ui/alert';
 import { useToast } from '../../../hooks/useToast';
 import { Label } from '../../ui/label';
 
-
 export default function TestForm({ onTestCreated, initialTest }) {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-
-  const validateField = (name, value) => {
-    let error = '';
-    // Add validation logic here
-    return error;
-  };
   const [test, setTest] = useState({
-    title: '',
-    description: '',
+    title: "",
+    description: "",
     duration: 60,
     total_marks: 100,
-    passing_marks: 40,    
+    passing_marks: 40,
     start_time: '',
     end_time: '',
     questions: []
   });
   const { toast } = useToast();
-  const controller = new AbortController();
+  const [controller, setController] = useState(null);
 
   useEffect(() => {
       if (initialTest) {
       setTest({
         ...initialTest,
-        start_time: initialTest.start_time ? new Date(initialTest.start_time).toISOString().slice(0, 16) : '',
-        end_time: initialTest.end_time ? new Date(initialTest.end_time).toISOString().slice(0, 16) : '',
+        start_time: initialTest.start_time ? new Date(initialTest.start_time).toISOString().slice(0, 16) : "",
+        end_time: initialTest.end_time ? new Date(initialTest.end_time).toISOString().slice(0, 16) : "",
         questions: initialTest.questions || [],
-      });
+      })
     }
+    const abortController = new AbortController();
+    setController(abortController);
+    return () => abortController.abort();
   }, [initialTest]);
 
-  const validateQuestion = (question) => {
-    const questionErrors = {};
-    if (!question.question_text) questionErrors.question_text = 'Question text is required';
-    if (question.options.some(option => !option)) questionErrors.options = 'All options are required';
-    if (!question.correct_answer) questionErrors.correct_answer = 'Correct answer is required';
-    if (question.marks <= 0) questionErrors.marks = 'Marks must be greater than 0';
-    return questionErrors;
-  };
-
   const handleSubmit = async (e) => {
-    const errors = {};
-    if (!test.title) {
-      errors.title = 'Title is required';
-    }
-    if (!test.description) {
-      errors.description = 'Description is required';
-    }
-    if (test.duration <= 0) {
-      errors.duration = 'Duration must be greater than 0';
-    }
-    if (test.total_marks <= 0) {
-      errors.total_marks = 'Total marks must be greater than 0';
-    }
-    if (test.passing_marks <= 0 || test.passing_marks > test.total_marks) {
-      errors.passing_marks = 'Passing marks must be between 1 and total marks';
-    }
-    if (!test.start_time) {
-      errors.start_time = 'Start time is required';
-    }
-    if (!test.end_time) {
-      errors.end_time = 'End time is required';
-    }
-    if (new Date(test.end_time) <= new Date(test.start_time)) {
-      errors.end_time = 'End time must be after start time';
-    }
-    for (let i = 0; i < test.questions.length; i++) {
-      const questionErrors = validateQuestion(test.questions[i]);
-      
-      // Check if the correct answer is one of the options
-      if (!test.questions[i].options.includes(test.questions[i].correct_answer)) {
-          questionErrors.correct_answer = 'Correct answer must be one of the options';
-      }
-      if (test.questions[i].marks > test.total_marks) {
-      }
-      if (Object.keys(questionErrors).length > 0) {
-        errors.questions = errors.questions || {};
-        errors.questions[i] = questionErrors;
-      }
-    }
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }  
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      e.preventDefault();
-      setLoading(true);
-      setError('');
-      await testService.createTest(test, controller.signal)
-      onTestCreated()
-    }catch(e){
-      setError(e.message);
-    }finally{
+      await testService.createTest(test, controller.signal);
+      toast({
+        title: 'Success',
+        description: 'Test created successfully',
+        type: 'success',
+      });
+      onTestCreated();
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setError(err.message);
+        toast({
+          title: 'Error',
+          description: err.message,
+          type: 'error',
+        });
+      }
+    } finally {
       setLoading(false);
-    }    
+    }
   };
 
   const addQuestion = () => {
-    setTest(prev => ({
+    setTest((prev) => ({
       ...prev,
       questions: [
         ...prev.questions,
         {
-          question_text: '',
-          options: ['', '', '', ''],
-          correct_answer: '',
-          explanation: '',
-          marks: 1
-        }
-      ]
-    }));
-  };
+          question_text: "",
+          options: ["", "", "", ""],
+          correct_answer: "",
+          explanation: "",
+          marks: 1,
+        },
+      ],
+    }))
+    setActiveTab("questions")
+  }
 
   const updateQuestionField = (qIndex, field, value) => {
-    const newQuestions = [...test.questions];
-    newQuestions[qIndex][field] = value;
-    setTest(prev => ({ ...prev, questions: newQuestions }));
-  };
+    const newQuestions = [...test.questions]
+    newQuestions[qIndex][field] = value
+    setTest((prev) => ({ ...prev, questions: newQuestions }))
+  }
 
   const updateQuestionOption = (qIndex, oIndex, value) => {
-    const newQuestions = [...test.questions];
-    newQuestions[qIndex].options[oIndex] = value;
-    setTest(prev => ({ ...prev, questions: newQuestions }));
-  };
+    const newQuestions = [...test.questions]
+    newQuestions[qIndex].options[oIndex] = value
+    setTest((prev) => ({ ...prev, questions: newQuestions }))
+  }
+
+  const removeQuestion = (qIndex) => {
+    const newQuestions = test.questions.filter((_, i) => i !== qIndex)
+    setTest((prev) => ({ ...prev, questions: newQuestions }))
+  }
+
+  const getTotalQuestionMarks = () => {
+    return test.questions.reduce((total, q) => total + (Number.parseInt(q.marks) || 0), 0)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -153,66 +118,97 @@ export default function TestForm({ onTestCreated, initialTest }) {
           <div className="space-y-4">
             <div>
               <Label>Title</Label>
-              <Input                
-                value={test.title}                
+              <Input
+                value={test.title}
                 onChange={e => setTest(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter test title"
                 required
               />
             </div>
 
-            <div>
-              <Label>Description</Label>
-              <textarea
-                value={test.description}
-                onChange={e => setTest(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400"
-                rows={3}
-                placeholder="Describe the test purpose and content"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>Duration (minutes)</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={test.duration}
-                  onChange={e => setTest(prev => ({ ...prev, duration: parseInt(e.target.value, 10) }))}
-                  required
+                <Label className="flex items-center text-sm font-medium text-gray-700">
+                  <FileText className="h-4 w-4 mr-2 text-gray-500" />
+                  Description
+                </Label>
+                <textarea
+                  value={test.description}
+                  onChange={(e) => setTest((prev) => ({ ...prev, description: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400 p-3"
+                  rows={3}
+                  placeholder="Describe what this test is about and what students should expect"
                 />
               </div>
 
-              <div>
-                <Label>Total Marks</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={test.total_marks}
-                  onChange={e => setTest(prev => ({ ...prev, total_marks: parseInt(e.target.value, 10) }))}
-                  required
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <Label className="flex items-center text-sm font-medium text-gray-700">
+                    <Clock className="h-4 w-4 mr-2 text-gray-500" />
+                    Duration (minutes)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={test.duration}
+                      onChange={(e) => setTest((prev) => ({ ...prev, duration: Number.parseInt(e.target.value, 10) }))}
+                      className="pl-10"
+                    />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <span className="text-gray-500">⏱️</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div>
-                <Label>Passing Marks</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max={test.total_marks}
-                  value={test.passing_marks}
-                  onChange={e => setTest(prev => ({ ...prev, passing_marks: parseInt(e.target.value, 10) }))}
-                  required
-                />
+                <div>
+                  <Label className="flex items-center text-sm font-medium text-gray-700">
+                    <Star className="h-4 w-4 mr-2 text-gray-500" />
+                    Total Marks
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={test.total_marks}
+                      onChange={(e) =>
+                        setTest((prev) => ({ ...prev, total_marks: Number.parseInt(e.target.value, 10) }))
+                      }
+                      className="pl-10"
+                    />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <span className="text-gray-500">📊</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="flex items-center text-sm font-medium text-gray-700">
+                    <Award className="h-4 w-4 mr-2 text-gray-500" />
+                    Passing Marks
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="1"
+                      max={test.total_marks}
+                      value={test.passing_marks}
+                      onChange={(e) =>
+                        setTest((prev) => ({ ...prev, passing_marks: Number.parseInt(e.target.value, 10) }))
+                      }
+                      className="pl-10"
+                    />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <span className="text-gray-500">🏆</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Start Time</Label>
-                <Input                  
-                  type="datetime-local"                  
+                <Input
+                  type="datetime-local"
                   value={test.start_time}
                   onChange={e => setTest(prev => ({ ...prev, start_time: e.target.value }))}
                   required
@@ -221,17 +217,31 @@ export default function TestForm({ onTestCreated, initialTest }) {
 
               <div>
                 <Label>End Time</Label>
-                <Input                  
-                  type="datetime-local"                  
+                <Input
+                  type="datetime-local"
                   value={test.end_time}
                   onChange={e => setTest(prev => ({ ...prev, end_time: e.target.value }))}
                   required
                 />
               </div>
             </div>
+
+            <div className="flex justify-between pt-4">
+              <Button type="button" variant="outline" onClick={() => navigate("/admin/tests")} className="gap-2">
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setActiveTab("questions")}
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                Continue to Questions
+                <HelpCircle className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Questions Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -250,15 +260,11 @@ export default function TestForm({ onTestCreated, initialTest }) {
           </Button>
         </div>
 
-        {formErrors.questions && formErrors.questions.length === 0 && (
-        <p className="text-red-500 text-sm mt-2 px-6">All question fields must be valid.</p>
-        )}        
-
         <div className="p-6 space-y-6">
           {test.questions.length === 0 ? (
             <div className="text-center p-8 bg-gray-50 rounded-lg">
               <p className="text-gray-500">No questions added yet</p>
-            </div>            
+            </div>
           ) : (
             test.questions.map((question, qIndex) => (
               <div key={qIndex} className="border rounded-xl p-6 bg-gray-50 relative">
@@ -277,12 +283,7 @@ export default function TestForm({ onTestCreated, initialTest }) {
                   </Button>
                 </div>
 
-                {formErrors.questions && formErrors.questions[qIndex] && (
-                    <p className="text-red-500 text-sm mt-2 px-4">Some fields in this question are invalid.</p>
-                )}
-
-
-                <div className="space-y-4 px-4">
+                <div className="space-y-4">
                   <div>
                     <Label>Question Text</Label>
                     <textarea
@@ -290,13 +291,8 @@ export default function TestForm({ onTestCreated, initialTest }) {
                       onChange={e => updateQuestionField(qIndex, 'question_text', e.target.value)}
                       className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       rows={2}
-                      required                      
-                      placeholder="Enter the question text"
-                      />
-                      {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].question_text && (
-                          <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].question_text}</p>
-                      )}                                            
-                  
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -304,72 +300,45 @@ export default function TestForm({ onTestCreated, initialTest }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {question.options.map((option, oIndex) => (
                         <div key={oIndex} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name={`correct-${qIndex}`}
-                              checked={question.correct_answer === option}
-                              onChange={() => updateQuestionField(qIndex, 'correct_answer', option)}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                              required
-                            />                            
-                            
-                            
-                            
-                            <span className="ml-2 text-gray-600">Option {oIndex + 1}</span>                            
-                          </div>
-                          
+                          <input
+                            type="radio"
+                            name={`correct-${qIndex}`}
+                            checked={question.correct_answer === option}
+                            onChange={() => updateQuestionField(qIndex, 'correct_answer', option)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                            required
+                          />
                           <Input
                             type="text"
                             value={option}
-                            placeholder={`Option ${oIndex + 1}`}
                             onChange={e => updateQuestionOption(qIndex, oIndex, e.target.value)}
+                            placeholder={`Option ${oIndex + 1}`}
                             className="border-0 shadow-none focus:ring-0 p-0"
-                            required                            
+                            required
                           />
-                                                    
                         </div>
-                        
-                        
-                        
-                        
-                        
-                        
                       ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Explanation</Label>
                       <textarea
                         value={question.explanation}
                         onChange={e => updateQuestionField(qIndex, 'explanation', e.target.value)}
                         className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        rows={2}                        
-                        placeholder="Enter explanation for the correct answer"
-                        />
-                        {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].options && (
-                            <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].options}</p>
-                        )}
-                        {formErrors.questions && formErrors.questions[qIndex] && formErrors.questions[qIndex].correct_answer && (
-                            <p className="text-red-500 text-xs mt-1">{formErrors.questions[qIndex].correct_answer}</p>
-                        )}                                                                      
-                                           
+                        rows={2}
+                      />
                     </div>
-                    
-                    
                     <div>
                       <Label>Marks</Label>
                       <Input
                         type="number"
-                        min="1"                        
+                        min="1"
                         value={question.marks}
-                        
                         onChange={e => updateQuestionField(qIndex, 'marks', parseInt(e.target.value, 10))}
-                        className="w-24 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        
-                        
+                        className="w-24"
                       />
                     </div>
                   </div>
@@ -392,7 +361,6 @@ export default function TestForm({ onTestCreated, initialTest }) {
           type="submit" 
           disabled={loading}
           className="gap-2"
-          onClick={handleSubmit}
         >
           {loading && <Spinner className="h-4 w-4" />}
           {loading ? 'Saving...' : 'Save Test'}
@@ -411,19 +379,6 @@ function PlusIcon(props) {
       fill="currentColor"
     >
       <path fillRule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function TrashIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" />
     </svg>
   );
 }
