@@ -1,35 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '../../components/ui/button';
+import { Alert } from '../../components/ui/alert';
 import TestForm from '../../components/admin/forms/TestForm';
 import { useToast } from '../../hooks/useToast';
-import { PageHeader } from '../../components/common/PageHeader';
+import { testService } from '../../services/testService';
 
-const CreateTest = () => {
+export default function CreateTest() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const testId = searchParams.get('testId');
   const [initialTest, setInitialTest] = useState(null);
-  const [error, setError] = useState(null);
+  const { toast } = useToast();
 
-  const { testService } = require('../../services/testService'); // Ensure this import is correct
+  useEffect(() => {
+    document.body.classList.add('admin-sidebar-open');
+    return () => document.body.classList.remove('admin-sidebar-open');
+  }, []);
+
   useEffect(() => {
     const fetchTest = async () => {
       if (testId) {
         try {
-          const testData = await testService.getTestWithQuestions(testId);
-          setInitialTest(testData);
+          setLoading(true)
+          const testData = await testService.getTestWithQuestions(testId)
+          setInitialTest(testData)
         } catch (error) {
-          setError(error.message);
+          toast({
+            title: 'Error',
+            description: error.message,
+            type: 'error',
+          });
         }
-        // No need to show toast here, error will be displayed in the form
       }
-    };
+    }
 
-    fetchTest();
-  }, [testId, toast]);
+    fetchTest()
+  }, [testId, toast])
 
   const handleTestCreated = () => {
-    // Success message is now handled within TestForm
+    toast({
+      title: 'Success',
+      description: 'Test created successfully',
+      type: 'success',
+    });
     navigate('/admin/tests');
   };
 
@@ -39,14 +53,13 @@ const CreateTest = () => {
     { label: testId ? 'Edit Test' : 'Create New Test' },
   ];
   return (
-    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <PageHeader
-        title={testId ? 'Edit Test' : 'Create New Test'}
-        breadcrumbs={breadcrumbs}
-      />
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">{error}</div>}
-      <TestForm onTestCreated={handleTestCreated} initialTest={initialTest} />
-    </div>
+  
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">
+          {testId ? 'Edit Test' : 'Create New Test'}
+        </h1>
+        <TestForm onTestCreated={handleTestCreated} initialTest={initialTest} />
+      </div>
+  
   );
 }
-export default CreateTest;
