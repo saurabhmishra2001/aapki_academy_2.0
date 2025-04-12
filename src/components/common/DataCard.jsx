@@ -1,26 +1,28 @@
-import { Card, CardContent, CardActions, Typography, Box } from '@mui/material';
-
-export const DataCard = ({ title, subtitle, content, actions, elevation = 1 }) => {
+export default DataCard = ({
+  title,
+  subtitle,
+  content,
+  actions,
+  className = "",
+}) => {
   return (
-    <Card elevation={elevation}>
-      <CardContent>
-        <Typography variant="h6" component="div" gutterBottom>
-          {title}
-        </Typography>
+    <div
+      className={`bg-white rounded-lg shadow-md p-6 ${className}`}
+    >
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         {subtitle && (
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            {subtitle}
-          </Typography>
+          <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
         )}
-        <Box sx={{ mt: 2 }}>
-          {content}
-        </Box>
-      </CardContent>
+      </div>
+
+      <div className="text-gray-700">{content}</div>
+
       {actions && (
-        <CardActions sx={{ p: 2, pt: 0 }}>
+        <div className="mt-4 flex justify-end">
           {actions}
-        </CardActions>
+        </div>
       )}
-    </Card>
+    </div>
   );
 };

@@ -1,7 +1,7 @@
 import { Box, Typography, Breadcrumbs, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
-export const PageHeader = ({ title, breadcrumbs }) => {
+export default PageHeader = ({ title, breadcrumbs }) => {
   return (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h1" component="h1" gutterBottom>
