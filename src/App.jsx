@@ -1,13 +1,21 @@
-import React, { Suspense } from 'react';
+import React from 'react';
+import './index.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { getTheme } from './theme';
+import { useThemeContext } from './contexts/ThemeContext';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import Documents from './pages/Documents';
 import Videos from './pages/Videos';
@@ -27,38 +35,29 @@ import ActiveTests from './pages/admin/ActiveTests';
 import TotalTests from './pages/admin/TotalTests';
 import TotalUsers from './pages/admin/TotalUsers';
 import AdminRequests from './pages/admin/AdminRequests';
-import MainLayout from './components/layout/MainLayout';
-import Loading from './components/common/Loading'; // Create a Loading component
-import ErrorBoundary from './components/ErrorBoundary'; // Create an ErrorBoundary component
-
 
 function AppContent() {
   const { darkMode } = useThemeContext();
   const theme = getTheme(darkMode);
 
   return (
-    <ErrorBoundary>
-    <Suspense fallback={<Loading />}>
-
-
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column',
         minHeight: '100vh',
+        backgroundColor: theme.palette.background.default 
       }}>
-      
-
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          
-          {/* Main App Layout */}
-          <Route element={<MainLayout />}>
-            <Route index element={<Home />} />
+        <Navbar />
+        <main style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Protected Routes */}
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/courses" element={<PrivateRoute><Courses /></PrivateRoute>} />
             <Route path="/documents" element={<PrivateRoute><Documents /></PrivateRoute>} />
@@ -66,51 +65,29 @@ function AppContent() {
             <Route path="/pyq-tests" element={<PrivateRoute><PYQTests /></PrivateRoute>} />
             <Route path="/pyq-tests/:testId" element={<PrivateRoute><TestPage /></PrivateRoute>} />
             <Route path="/test-result/:attemptId" element={<PrivateRoute><TestResult /></PrivateRoute>} />
-          </Route>
 
-          {/* Admin Routes - Assuming they also use MainLayout */}
-          <Route path="/admin" element={<AdminRoute><MainLayout isAdmin={true} /></AdminRoute>}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="courses" element={<AdminCourses />} />
-            <Route path="videos" element={<AdminVideos />} />
-            <Route path="documents" element={<AdminDocuments />} />
-            <Route path="tests" element={<AdminTests />} />
-            <Route path="tests/create" element={<CreateTest />} />
-            <Route path="tests/edit/:testId" element={<EditTestForm />} />
-            <Route path="active-tests" element={<ActiveTests />} />
-            <Route path="total-tests" element={<TotalTests />} />
-            <Route path="total-users" element={<TotalUsers />} />
-            <Route path="requests" element={<AdminRequests />} />
-          </Route>
+            {/* Catch-all route for 404 */}
+            <Route path="*" element={<NotFound />} />
 
-          {/* Catch-all route for 404 */}
-          <Route path="*" element={<NotFound />} />
-
-        </Routes>
+            {/* Admin Routes */}
+            <Route path="admin/adminDashboard" element={<AdminDashboard />} />
+            <Route path="/admin/courses" element={<AdminCourses />} />
+            <Route path="/admin/videos" element={<AdminVideos />} />
+            <Route path="/admin/documents" element={<AdminDocuments />} />
+            <Route path="/admin/CreateTest" element={<CreateTest />} />
+            <Route path="/admin/tests" element={<AdminTests />} />
+            <Route path="/admin/edit-test/:testId" element={<EditTestForm />} />
+            <Route path="/admin/active-tests" element={<ActiveTests />} />
+            <Route path="/admin/total-tests" element={<TotalTests />} />
+            <Route path="/admin/total-users" element={<TotalUsers />} />
+            <Route path="/admin/requests" element={<AdminRequests />} />
+          </Routes>
+        </main>
+        <Footer />
       </div>
     </MuiThemeProvider>
-     </Suspense>
-    </ErrorBoundary>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export default function App() {
   return (
