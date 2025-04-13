@@ -109,126 +109,164 @@ export default function TestForm({ onTestCreated, initialTest }) {
   const totalQuestionsMarks = test.questions.reduce((sum, q) => sum + q.marks, 0)
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Create New Test</h1>
-        <p className="text-gray-600">Fill in the details and add questions to create a test</p>
-        <div className="flex items-center gap-4 mt-4 text-gray-600">
-          <span className="flex items-center">
-            <Clock className="h-4 w-4 mr-1" />
-            {test.duration} min
-          </span>
-          <span className="flex items-center">
-            <Award className="h-4 w-4 mr-1" />
-            {test.questions.length} questions
-          </span>
+    <div className="min-h-screen bg-white p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Breadcrumb Navigation */}
+        <nav className="flex mb-6 text-sm">
+          <a href="/dashboard" className="text-blue-600 hover:text-blue-800">Dashboard</a>
+          <span className="mx-2 text-gray-500">/</span>
+          <a href="/tests" className="text-blue-600 hover:text-blue-800">Tests</a>
+          <span className="mx-2 text-gray-500">/</span>
+          <span className="text-gray-600">Create Test</span>
+        </nav>
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Create New Test</h1>
+            <p className="mt-2 text-gray-600">Fill in the details and add questions to create a test</p>
+          </div>
+
+          <div className="flex gap-4 text-sm text-gray-600">
+            <span className="flex items-center">
+              <Clock className="h-4 w-4 mr-1" />
+              {test.duration} min
+            </span>
+            <span className="flex items-center">
+              <Award className="h-4 w-4 mr-1" />
+              {test.questions.length} questions
+            </span>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab("details")}
+              className={`mr-4 py-2 px-1 ${
+                activeTab === "details"
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-gray-500"
+              }`}
+            >
+              Test Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("questions")}
+              className={`py-2 px-1 ${
+                activeTab === "questions"
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-gray-500"
+              }`}
+            >
+              Questions
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {activeTab === "details" && (
+              <>
+                <div>
+                  <label className="block font-medium mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={test.title}
+                    onChange={(e) => setTest(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="Enter test title"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">Description</label>
+                  <textarea
+                    value={test.description}
+                    onChange={(e) => setTest(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                    rows={4}
+                    placeholder="Describe the test purpose and content"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">Duration (minutes)</label>
+                  <input
+                    type="number"
+                    value={test.duration}
+                    onChange={(e) => setTest(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">Total Marks</label>
+                  <input
+                    type="number"
+                    value={test.total_marks}
+                    onChange={(e) => setTest(prev => ({ ...prev, total_marks: parseInt(e.target.value) }))}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">Passing Marks</label>
+                  <input
+                    type="number"
+                    value={test.passing_marks}
+                    onChange={(e) => setTest(prev => ({ ...prev, passing_marks: parseInt(e.target.value) }))}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">Start Time</label>
+                  <input
+                    type="datetime-local"
+                    value={test.start_time}
+                    onChange={(e) => setTest(prev => ({ ...prev, start_time: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-1">End Time</label>
+                  <input
+                    type="datetime-local"
+                    value={test.end_time}
+                    onChange={(e) => setTest(prev => ({ ...prev, end_time: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-4 pt-6">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="px-4 py-2 border rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : 'Save Test'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      <div className="space-y-6">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Basic Information</h2>
-          <p className="text-gray-600 mb-4">Enter the general details about this test</p>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title" className="text-gray-700">Title</Label>
-              <Input
-                id="title"
-                value={test.title}
-                onChange={(e) => setTest((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter test title"
-                required
-                className="w-full mt-1 border-gray-300"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description" className="text-gray-700">Description</Label>
-              <Textarea
-                id="description"
-                value={test.description}
-                onChange={(e) => setTest((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe the test purpose and content"
-                className="w-full mt-1 border-gray-300"
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="duration" className="text-gray-700">Duration (minutes)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  value={test.duration}
-                  onChange={(e) => setTest((prev) => ({ ...prev, duration: parseInt(e.target.value) }))}
-                  className="w-full mt-1 border-gray-300"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="total_marks" className="text-gray-700">Total Marks</Label>
-                <Input
-                  id="total_marks"
-                  type="number"
-                  value={test.total_marks}
-                  onChange={(e) => setTest((prev) => ({ ...prev, total_marks: parseInt(e.target.value) }))}
-                  className="w-full mt-1 border-gray-300"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="passing_marks" className="text-gray-700">Passing Marks</Label>
-                <Input
-                  id="passing_marks"
-                  type="number"
-                  value={test.passing_marks}
-                  onChange={(e) => setTest((prev) => ({ ...prev, passing_marks: parseInt(e.target.value) }))}
-                  className="w-full mt-1 border-gray-300"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Schedule</h2>
-          <p className="text-gray-600 mb-4">Set when the test will be available</p>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="start_time" className="text-gray-700">Start Time</Label>
-              <Input
-                id="start_time"
-                type="datetime-local"
-                value={test.start_time}
-                onChange={(e) => setTest((prev) => ({ ...prev, start_time: e.target.value }))}
-                className="w-full mt-1 border-gray-300"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="end_time" className="text-gray-700">End Time</Label>
-              <Input
-                id="end_time"
-                type="datetime-local"
-                value={test.end_time}
-                onChange={(e) => setTest((prev) => ({ ...prev, end_time: e.target.value }))}
-                className="w-full mt-1 border-gray-300"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ... rest of the form remains the same ... */}
-      </div>
-    </form>
+    </div>
   );
 }
 
