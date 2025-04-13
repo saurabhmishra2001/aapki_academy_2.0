@@ -70,17 +70,17 @@ function AppContent() {
             <Route path="*" element={<NotFound />} />
 
             {/* Admin Routes */}
-            <Route path="admin/adminDashboard" element={<AdminDashboard />} />
-            <Route path="/admin/courses" element={<AdminCourses />} />
-            <Route path="/admin/videos" element={<AdminVideos />} />
-            <Route path="/admin/documents" element={<AdminDocuments />} />
-            <Route path="/admin/CreateTest" element={<CreateTest />} />
-            <Route path="/admin/tests" element={<AdminTests />} />
-            <Route path="/admin/edit-test/:testId" element={<EditTestForm />} />
-            <Route path="/admin/active-tests" element={<ActiveTests />} />
-            <Route path="/admin/total-tests" element={<TotalTests />} />
-            <Route path="/admin/total-users" element={<TotalUsers />} />
-            <Route path="/admin/requests" element={<AdminRequests />} />
+            <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
+            <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
+            <Route path="/admin/documents" element={<AdminRoute><AdminDocuments /></AdminRoute>} />
+            <Route path="/admin/create-test" element={<AdminRoute><CreateTest /></AdminRoute>} />
+            <Route path="/admin/tests" element={<AdminRoute><AdminTests /></AdminRoute>} />
+            <Route path="/admin/edit-test/:testId" element={<AdminRoute><EditTestForm /></AdminRoute>} />
+            <Route path="/admin/active-tests" element={<AdminRoute><ActiveTests /></AdminRoute>} />
+            <Route path="/admin/total-tests" element={<AdminRoute><TotalTests /></AdminRoute>} />
+            <Route path="/admin/total-users" element={<AdminRoute><TotalUsers /></AdminRoute>} />
+            <Route path="/admin/requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
           </Routes>
         </main>
         <Footer />
