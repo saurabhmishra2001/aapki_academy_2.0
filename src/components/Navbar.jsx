@@ -85,7 +85,7 @@ export default function Navbar() {
 
   // Navigation items for admin users
   const adminNavItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/adminDashboard' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { text: 'Courses', icon: <CoursesIcon />, path: '/admin/courses' },
     { text: 'Videos', icon: <VideosIcon />, path: '/admin/videos' },
     { text: 'Documents', icon: <DocumentsIcon />, path: '/admin/documents' },
@@ -94,7 +94,7 @@ export default function Navbar() {
       icon: <TestsIcon />,
       subItems: [
         { text: 'All Tests', path: '/admin/tests' },
-        { text: 'Create Test', path: '/admin/CreateTest' },
+        { text: 'Create Test', path: '/admin/create-test' },
         { text: 'Edit Test', path: '/admin/edit-test' },
         { text: 'Active Tests', path: '/admin/active-tests' },
         { text: 'Total Tests', path: '/admin/total-tests' },

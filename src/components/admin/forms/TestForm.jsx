@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import { adminService } from '../../../services/adminService';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
@@ -45,14 +46,39 @@ export default function TestForm({ onTestCreated, initialTest }) {
     return () => abortController.abort()
   }, [initialTest])
 
+  const validateTest = () => {
+    if (!test.title) return 'Title is required';
+    if (!test.duration || test.duration <= 0) return 'Duration must be greater than 0';
+    if (!test.total_marks || test.total_marks <= 0) return 'Total marks must be greater than 0';
+    if (!test.passing_marks || test.passing_marks <= 0) return 'Passing marks must be greater than 0';
+    if (test.passing_marks > test.total_marks) return 'Passing marks cannot be greater than total marks';
+    if (test.questions.length === 0) return 'At least one question is required';
+    
+    for (let i = 0; i < test.questions.length; i++) {
+      const q = test.questions[i];
+      if (!q.question_text) return `Question ${i + 1} text is required`;
+      if (!q.correct_answer) return `Question ${i + 1} correct answer is required`;
+      if (q.options.some(opt => !opt)) return `All options for question ${i + 1} are required`;
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     try {
-      // Assuming testService.createTest is available in your actual implementation
-      // await testService.createTest(test, controller?.signal)
+      const validationError = validateTest();
+      if (validationError) {
+        throw new Error(validationError);
+      }
+
+      const { error: createError } = await adminService.createTest(test);
+      
+      if (createError) {
+        throw new Error(createError.message || 'Failed to create test');
+      }
       toast({
         title: "Success",
         description: "Test created successfully",
