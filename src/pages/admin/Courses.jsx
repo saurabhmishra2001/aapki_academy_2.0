@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Separator } from '../../components/ui/separator';
 import CourseForm from '../../components/admin/forms/CourseForm';
 import { useToast } from '../../hooks/useToast';
 import { Input } from '../../components/ui/input';
+import { Search, Plus, Clock, BookOpen, DollarSign, Users, Edit2, Trash2, ImageIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Dashboard from '../../components/admin/Dashboard';
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState([]);
@@ -21,8 +26,9 @@ export default function AdminCourses() {
 
   const loadCourses = async () => {
     try {
-      const data = await adminService.getCourses();
-      setCourses(data);
+      const { data, error } = await adminService.getCourses();
+      if (error) throw error;
+      setCourses(data || []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -101,12 +107,20 @@ export default function AdminCourses() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Courses</h1>
+      <Dashboard />
+
+      
+      <div className="mt-8 flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Courses</h1>
+          <p className="text-gray-600">Create and manage your educational content</p>
+        </div>
         <Button
           onClick={handleAddNewCourse}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
+          size="lg"
+          className="flex items-center gap-2 w-full md:w-auto"
         >
+          <Plus className="w-5 h-5" />
           Add New Course
         </Button>
       </div>
@@ -126,52 +140,94 @@ export default function AdminCourses() {
         </div>
       )}
 
-      <div className="mb-4">
-        <Input
-          type="text"
-          placeholder="Search courses..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-      </div>
+      <Separator className="my-6" />
+      
+      <Card className="mb-8">
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Search courses by title..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredCourses.map((course) => (
-          <Card
+          <motion.div
             key={course.id}
-            className="hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
+            <Card className="h-full overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div className="relative">
+              {course.thumbnail ? (
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                  <ImageIcon className="w-12 h-12 text-gray-400" />
+                </div>
+              )}
+              <Badge className="absolute top-2 right-2" variant="secondary">
+                {course.category}
+              </Badge>
+            </div>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-800">
+              <CardTitle className="text-xl group-hover:text-primary transition-colors duration-200">
                 {course.title}
               </CardTitle>
+              <CardDescription className="line-clamp-2">{course.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-2">{course.description}</p>
-              <div className="text-sm text-gray-500 mb-4">
-                <p><strong>Duration:</strong> {course.duration} hours</p>
-                <p><strong>Lessons:</strong> {course.lessons}</p>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleEdit(course.id)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 focus:ring-2 focus:ring-yellow-400"
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(course.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 focus:ring-2 focus:ring-red-400"
-                >
-                  Delete
-                </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>{course.duration}h</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <BookOpen className="w-4 h-4" />
+                  <span>{course.lessons} lessons</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <DollarSign className="w-4 h-4" />
+                  <span>₹{course.price}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span>0 enrolled</span>
+                </div>
               </div>
             </CardContent>
+            <CardFooter className="flex justify-end space-x-2 pt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleEdit(course.id)}
+                className="flex items-center gap-1"
+              >
+                <Edit2 className="w-4 h-4" /> Edit
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleDelete(course.id)}
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </Button>
+            </CardFooter>
           </Card>
+          </motion.div>
         ))}
       </div>
     </div>

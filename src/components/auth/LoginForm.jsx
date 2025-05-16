@@ -46,7 +46,8 @@ const LoginForm = () => {
             }
             
             if (user) {
-                navigate('/dashboard', { replace: true });
+                const path = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+                navigate(path, { replace: true });
             }
         } catch (error) {
             handleAuthError(error);
@@ -68,7 +69,8 @@ const LoginForm = () => {
             }
             
             if (user) {
-                navigate('/dashboard', { replace: true });
+                const path = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+                navigate(path, { replace: true });
             }
         } catch (error) {
             handleAuthError(error);
