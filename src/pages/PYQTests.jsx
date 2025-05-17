@@ -13,6 +13,7 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
+import { testService } from "../services/testService";
 
 export default function PYQTests() {
   const [tests, setTests] = useState([]);
@@ -26,19 +27,12 @@ export default function PYQTests() {
   }, []);
 
   const fetchTests = async () => {
+    setLoading(true);
     try {
-      const testsQuery = query(
-        collection(db, 'tests'),
-        where('type', '==', 'pyq')
-      );
-
-      const querySnapshot = await getDocs(testsQuery);
-      const testsList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      setTests(testsList);
+      // Fetch tests where type is 'pyq' using testService
+      const allTests = await testService.getTests();
+      const pyqTests = allTests.filter(test => test.type === "pyq");
+      setTests(pyqTests);
       setError(null);
     } catch (err) {
       console.error('Error fetching tests:', err);

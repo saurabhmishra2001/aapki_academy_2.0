@@ -23,8 +23,9 @@ export default function AdminVideos() {
 
   const loadVideos = async () => {
     try {
-      const data = await adminService.getVideos();
-      setVideos(data);
+      const { data, error } = await adminService.getVideos();
+      if (error) throw error;
+      setVideos(data || []);
     } catch (error) {
       toast({
         title: 'Error',

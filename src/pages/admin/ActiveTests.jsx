@@ -11,7 +11,7 @@ export default function ActiveTests() {
   useEffect(() => {
     const fetchActiveTests = async () => {
       try {
-        const data = await testService.getActiveTests(); // Implement this function in testService
+        const data = await testService.getActiveTests();
         setActiveTests(data);
       } catch (error) {
         console.error('Error fetching active tests:', error);
@@ -36,20 +36,30 @@ export default function ActiveTests() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Active Tests</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeTests.map((test) => (
-          <Card key={test.id}>
+        {activeTests?.map((test) => (
+          <Card key={test.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <CardTitle>{test.title}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                {test.title}
+                <span className="text-sm font-normal text-green-600">Active</span>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{test.description}</p>
-              <p>Duration: {test.duration} minutes</p>
-              <p>Total Marks: {test.total_marks}</p>
-              <Button>View Details</Button>
+              <p className="text-gray-600 mb-4">{test.description}</p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>Duration: {test.duration} minutes</p>
+                <p>Total Marks: {test.total_marks}</p>
+                <p>Passing Marks: {test.passing_marks}</p>
+                <p>Start: {new Date(test.start_time).toLocaleString()}</p>
+                <p>End: {new Date(test.end_time).toLocaleString()}</p>
+              </div>
+              <div className="mt-4">
+                <Button className="w-full" onClick={() => navigate(`/admin/tests/${test.id}`)}>View Details</Button>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
     </div>
   );
-} 
+}

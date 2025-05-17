@@ -4,12 +4,13 @@ import path from 'path'; // Make sure to import path
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react(),    tailwindcss()],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/components': path.resolve(__dirname, './src/components'),
       // Add more aliases as needed   
+   
    
       
 

@@ -76,28 +76,29 @@ export default function Navbar() {
 
   // Navigation items for regular users
   const userNavItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Courses', icon: <CoursesIcon />, path: '/courses' },
-    { text: 'Videos', icon: <VideosIcon />, path: '/videos' },
-    { text: 'Documents', icon: <DocumentsIcon />, path: '/documents' },
-    { text: 'Tests', icon: <TestsIcon />, path: '/pyq-tests' },
+    { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { id: 'courses', text: 'Courses', icon: <CoursesIcon />, path: '/courses' },
+    { id: 'videos', text: 'Videos', icon: <VideosIcon />, path: '/videos' },
+    { id: 'documents', text: 'Documents', icon: <DocumentsIcon />, path: '/documents' },
+    { id: 'tests', text: 'Tests', icon: <TestsIcon />, path: '/pyq-tests' },
   ];
 
   // Navigation items for admin users
   const adminNavItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-    { text: 'Courses', icon: <CoursesIcon />, path: '/admin/courses' },
-    { text: 'Videos', icon: <VideosIcon />, path: '/admin/videos' },
-    { text: 'Documents', icon: <DocumentsIcon />, path: '/admin/documents' },
+    { id: 'admin-dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
+    { id: 'admin-courses', text: 'Courses', icon: <CoursesIcon />, path: '/admin/courses' },
+    { id: 'admin-videos', text: 'Videos', icon: <VideosIcon />, path: '/admin/videos' },
+    { id: 'admin-documents', text: 'Documents', icon: <DocumentsIcon />, path: '/admin/documents' },
     { 
+      id: 'admin-tests',
       text: 'Tests', 
       icon: <TestsIcon />,
       subItems: [
-        { text: 'All Tests', path: '/admin/tests' },
-        { text: 'Create Test', path: '/admin/create-test' },
-        { text: 'Edit Test', path: '/admin/edit-test' },
-        { text: 'Active Tests', path: '/admin/active-tests' },
-        { text: 'Total Tests', path: '/admin/total-tests' },
+        { id: 'all-tests', text: 'All Tests', path: '/admin/tests' },
+        { id: 'create-test', text: 'Create Test', path: '/admin/create-test' },
+        { id: 'edit-test', text: 'Edit Test', path: '/admin/edit-test' },
+        { id: 'active-tests', text: 'Active Tests', path: '/admin/active-tests' },
+        { id: 'total-tests', text: 'Total Tests', path: '/admin/total-tests' },
       ]
     },
     { text: 'Users', icon: <UsersIcon />, path: '/admin/total-users' },

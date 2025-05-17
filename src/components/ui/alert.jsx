@@ -26,3 +26,7 @@ export function Alert({ className, variant = 'default', children, ...props }) {
 export function AlertDescription({ className, ...props }) {
   return <p className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />;
 }
+
+export function AlertTitle({ className, ...props }) {
+  return <h5 className={cn('font-semibold text-base mb-1', className)} {...props} />;
+}
