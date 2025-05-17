@@ -21,8 +21,9 @@ export default function AdminDocuments() {
 
   const loadDocuments = async () => {
     try {
-      const data = await adminService.getDocuments();
-      setDocuments(data);
+      const { data, error } = await adminService.getDocuments();
+      if (error) throw error;
+      setDocuments(data || []);
     } catch (error) {
       toast({
         title: 'Error',

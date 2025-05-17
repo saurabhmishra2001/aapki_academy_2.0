@@ -1,102 +1,31 @@
-"use client"
-
-import React, { useState, useEffect } from 'react';
-import { adminService } from '../../../services/adminService';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { Label } from '../../ui/label';
+import React, { useState } from "react";
+import { Card } from "../../ui/card";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { Button } from "../../ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
+import { Plus, Trash2 } from "lucide-react";
 import Textarea from "../../ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
-import { Alert, AlertDescription } from '../../ui/alert';
-import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
-import { useToast } from '../../../hooks/useToast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { Badge } from '../../ui/badge';
-import { Separator } from '../../ui/separator';
-import { Plus, Trash2, AlertCircle, Clock, Award, Calendar, Save } from 'lucide-react';
 
-export default function TestForm({ onTestCreated, initialTest }) {
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("details")
+const TestForm = ({ onTestCreated }) => {
   const [test, setTest] = useState({
     title: "",
-    description: "",
     duration: 60,
     total_marks: 100,
-    passing_marks: 40,
-    start_time: "",
-    end_time: "",
+    status: "draft",
+    description: "",
     questions: [],
-  })
-  const { toast } = useToast()
-  const [controller, setController] = useState(null)
+    type: "regular"
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (initialTest) {
-      setTest({
-        ...initialTest,
-        start_time: initialTest.start_time ? new Date(initialTest.start_time).toISOString().slice(0, 16) : "",
-        end_time: initialTest.end_time ? new Date(initialTest.end_time).toISOString().slice(0, 16) : "",
-        questions: initialTest.questions || [],
-      })
-    }
-    const abortController = new AbortController()
-    setController(abortController)
-    return () => abortController.abort()
-  }, [initialTest])
+  const [formErrors, setFormErrors] = useState({});
 
-  const validateTest = () => {
-    if (!test.title) return 'Title is required';
-    if (!test.duration || test.duration <= 0) return 'Duration must be greater than 0';
-    if (!test.total_marks || test.total_marks <= 0) return 'Total marks must be greater than 0';
-    if (!test.passing_marks || test.passing_marks <= 0) return 'Passing marks must be greater than 0';
-    if (test.passing_marks > test.total_marks) return 'Passing marks cannot be greater than total marks';
-    if (test.questions.length === 0) return 'At least one question is required';
-    
-    for (let i = 0; i < test.questions.length; i++) {
-      const q = test.questions[i];
-      if (!q.question_text) return `Question ${i + 1} text is required`;
-      if (!q.correct_answer) return `Question ${i + 1} correct answer is required`;
-      if (q.options.some(opt => !opt)) return `All options for question ${i + 1} are required`;
-    }
-    return null;
+  const handleTestFieldChange = (field, value) => {
+    setTest((prev) => ({ ...prev, [field]: value }));
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-
-    try {
-      const validationError = validateTest();
-      if (validationError) {
-        throw new Error(validationError);
-      }
-
-      const { error: createError } = await adminService.createTest(test);
-      
-      if (createError) {
-        throw new Error(createError.message || 'Failed to create test');
-      }
-      toast({
-        title: "Success",
-        description: "Test created successfully",
-      })
-      onTestCreated()
-    } catch (err) {
-      if (err.name !== "AbortError") {
-        setError(err.message)
-        toast({
-          title: "Error",
-          description: err.message,
-          variant: "destructive",
-        })
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const addQuestion = () => {
     setTest((prev) => ({
@@ -107,192 +36,227 @@ export default function TestForm({ onTestCreated, initialTest }) {
           question_text: "",
           options: ["", "", "", ""],
           correct_answer: "",
-          explanation: "",
           marks: 1,
         },
       ],
-    }))
-    setActiveTab("questions")
-  }
+    }));
+  };
 
-  const updateQuestionField = (qIndex, field, value) => {
-    const newQuestions = [...test.questions]
-    newQuestions[qIndex][field] = value
-    setTest((prev) => ({ ...prev, questions: newQuestions }))
-  }
+  const removeQuestion = (index) => {
+    setTest((prev) => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== index),
+    }));
+  };
 
-  const updateQuestionOption = (qIndex, oIndex, value) => {
-    const newQuestions = [...test.questions]
-    newQuestions[qIndex].options[oIndex] = value
-    setTest((prev) => ({ ...prev, questions: newQuestions }))
-  }
+  const updateQuestionField = (index, field, value) => {
+    setTest((prev) => {
+      const updatedQuestions = [...prev.questions];
+      updatedQuestions[index][field] = value;
+      return { ...prev, questions: updatedQuestions };
+    });
+  };
 
-  const removeQuestion = (qIndex) => {
-    const newQuestions = test.questions.filter((_, i) => i !== qIndex)
-    setTest((prev) => ({ ...prev, questions: newQuestions }))
-  }
+  const updateQuestionOption = (qIndex, optIndex, value) => {
+    setTest((prev) => {
+      const updatedQuestions = [...prev.questions];
+      updatedQuestions[qIndex].options[optIndex] = value;
+      return { ...prev, questions: updatedQuestions };
+    });
+  };
 
-  const totalQuestionsMarks = test.questions.reduce((sum, q) => sum + q.marks, 0)
+  const validateForm = () => {
+    const errors = {};
+
+    if (!test.title.trim()) errors.title = "Title is required";
+    if (!test.duration || test.duration <= 0) errors.duration = "Duration must be positive";
+    if (!test.total_marks || test.total_marks <= 0) errors.total_marks = "Total marks must be positive";
+
+    test.questions.forEach((q, index) => {
+      if (!q.question_text.trim()) errors[`question_${index}`] = "Question text is required";
+      if (!q.correct_answer.trim()) errors[`question_${index}_answer`] = "Correct answer is required";
+    });
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (validateForm()) {
+      setLoading(true);
+      try {
+        const { testService } = await import("../../../services/testService");
+        await testService.createTest(test);
+        if (onTestCreated) onTestCreated();
+      } catch (err) {
+        setError(err.message || "Failed to create test");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const totalQuestionsMarks = test.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
 
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex mb-6 text-sm">
-          <a href="/dashboard" className="text-blue-600 hover:text-blue-800">Dashboard</a>
-          <span className="mx-2 text-gray-500">/</span>
-          <a href="/tests" className="text-blue-600 hover:text-blue-800">Tests</a>
-          <span className="mx-2 text-gray-500">/</span>
-          <span className="text-gray-600">Create Test</span>
-        </nav>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList>
+          <TabsTrigger value="details">Test Details</TabsTrigger>
+          <TabsTrigger value="questions">Questions</TabsTrigger>
+        </TabsList>
 
-        {/* Main Content */}
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Test</h1>
-            <p className="mt-2 text-gray-600">Fill in the details and add questions to create a test</p>
-          </div>
-
-          <div className="flex gap-4 text-sm text-gray-600">
-            <span className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              {test.duration} min
-            </span>
-            <span className="flex items-center">
-              <Award className="h-4 w-4 mr-1" />
-              {test.questions.length} questions
-            </span>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="border-b border-gray-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab("details")}
-              className={`mr-4 py-2 px-1 ${
-                activeTab === "details"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500"
-              }`}
-            >
-              Test Details
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("questions")}
-              className={`py-2 px-1 ${
-                activeTab === "questions"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500"
-              }`}
-            >
-              Questions
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {activeTab === "details" && (
-              <>
-                <div>
-                  <label className="block font-medium mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={test.title}
-                    onChange={(e) => setTest(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Enter test title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Description</label>
-                  <textarea
-                    value={test.description}
-                    onChange={(e) => setTest(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                    rows={4}
-                    placeholder="Describe the test purpose and content"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    value={test.duration}
-                    onChange={(e) => setTest(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Total Marks</label>
-                  <input
-                    type="number"
-                    value={test.total_marks}
-                    onChange={(e) => setTest(prev => ({ ...prev, total_marks: parseInt(e.target.value) }))}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Passing Marks</label>
-                  <input
-                    type="number"
-                    value={test.passing_marks}
-                    onChange={(e) => setTest(prev => ({ ...prev, passing_marks: parseInt(e.target.value) }))}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Start Time</label>
-                  <input
-                    type="datetime-local"
-                    value={test.start_time}
-                    onChange={(e) => setTest(prev => ({ ...prev, start_time: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">End Time</label>
-                  <input
-                    type="datetime-local"
-                    value={test.end_time}
-                    onChange={(e) => setTest(prev => ({ ...prev, end_time: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-end gap-4 pt-6">
-              <button
-                type="button"
-                onClick={() => window.history.back()}
-                className="px-4 py-2 border rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Saving...' : 'Save Test'}
-              </button>
+        {/* Details Tab */}
+        <TabsContent value="details" className="mt-6">
+          <Card className="p-4 space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={test.title}
+                onChange={(e) => handleTestFieldChange("title", e.target.value)}
+              />
+              {formErrors.title && <p className="text-sm text-red-500">{formErrors.title}</p>}
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
 
+            <div>
+              <Label>Duration (minutes)</Label>
+              <Input
+                type="number"
+                value={test.duration}
+                onChange={(e) => handleTestFieldChange("duration", parseInt(e.target.value) || 0)}
+              />
+              {formErrors.duration && (
+                <p className="text-sm text-red-500">{formErrors.duration}</p>
+              )}
+            </div>
+
+            <div>
+              <Label>Total Marks</Label>
+              <Input
+                type="number"
+                value={test.total_marks}
+                onChange={(e) => handleTestFieldChange("total_marks", parseInt(e.target.value) || 0)}
+              />
+              {formErrors.total_marks && (
+                <p className="text-sm text-red-500">{formErrors.total_marks}</p>
+              )}
+            </div>
+
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={test.description}
+                onChange={(e) => handleTestFieldChange("description", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>Status</Label>
+              <select
+                className="border rounded p-2 w-full"
+                value={test.status}
+                onChange={(e) => handleTestFieldChange("status", e.target.value)}
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* Questions Tab */}
+        <TabsContent value="questions" className="mt-6">
+          <div className="space-y-6">
+            {test.questions.map((q, i) => (
+              <Card key={i} className="p-4">
+                <div className="mb-2">
+                  <Label>Question {i + 1}</Label>
+                  <Textarea
+                    value={q.question_text}
+                    onChange={(e) => updateQuestionField(i, "question_text", e.target.value)}
+                  />
+                  {formErrors[`question_${i}`] && (
+                    <p className="text-sm text-red-500">{formErrors[`question_${i}`]}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {q.options.map((opt, j) => (
+                    <div key={j}>
+                      <Label>Option {j + 1}</Label>
+                      <Input
+                        value={opt}
+                        onChange={(e) => updateQuestionOption(i, j, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-2">
+                  <Label>Correct Answer</Label>
+                  <Input
+                    value={q.correct_answer}
+                    onChange={(e) =>
+                      updateQuestionField(i, "correct_answer", e.target.value)
+                    }
+                  />
+                  {formErrors[`question_${i}_answer`] && (
+                    <p className="text-sm text-red-500">
+                      {formErrors[`question_${i}_answer`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-2">
+                  <Label>Marks</Label>
+                  <Input
+                    type="number"
+                    value={q.marks}
+                    onChange={(e) =>
+                      updateQuestionField(i, "marks", parseInt(e.target.value) || 1)
+                    }
+                  />
+                </div>
+
+                <Button
+                  variant="destructive"
+                  className="mt-4"
+                  type="button"
+                  onClick={() => removeQuestion(i)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Remove Question
+                </Button>
+              </Card>
+            ))}
+
+            <Button type="button" onClick={addQuestion}>
+              <Plus className="h-4 w-4 mr-2" /> Add Question
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Error Alert if total marks mismatch */}
+      {totalQuestionsMarks !== test.total_marks && (
+        <Alert variant="destructive">
+          <AlertTitle>Mismatch in Marks</AlertTitle>
+          <AlertDescription>
+            Sum of question marks ({totalQuestionsMarks}) does not match total test marks ({test.total_marks}).
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Test"}</Button>
+    </form>
+  );
+};
+
+export default TestForm;

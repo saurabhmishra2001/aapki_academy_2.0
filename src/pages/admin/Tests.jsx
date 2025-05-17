@@ -22,6 +22,8 @@ export default function AdminTests() {
   const loadTests = async () => {
     try {
       const data = await testService.getTests();
+      // Sort tests by creation date
+      data.sort((a, b) => b.createdAt - a.createdAt);
       setTests(data);
     } catch (error) {
       toast({
@@ -71,7 +73,7 @@ export default function AdminTests() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Tests</h1>
-          <Button onClick={() => navigate('/admin/CreateTest')}>
+          <Button onClick={() => navigate('/admin/create-test')}>
             Create New Test
           </Button>
         </div>
@@ -87,19 +89,32 @@ export default function AdminTests() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTests.map((test) => (
-            <Card key={test.id}>
+            <Card key={test.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>{test.title}</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  {test.title}
+                  <span className={`text-sm font-normal ${test.status === 'active' ? 'text-green-600' : 'text-gray-500'}`}>
+                    {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-2">{test.description}</p>
-                <div className="text-sm text-gray-500">
+                <p className="text-sm text-gray-600 mb-4">{test.description}</p>
+                <div className="space-y-2 text-sm text-gray-500">
                   <p>Duration: {test.duration} minutes</p>
                   <p>Total Marks: {test.total_marks}</p>
+                  <p>Passing Marks: {test.passing_marks}</p>
+                  {test.start_time && (
+                    <p>Start: {new Date(test.start_time).toLocaleString()}</p>
+                  )}
+                  {test.end_time && (
+                    <p>End: {new Date(test.end_time).toLocaleString()}</p>
+                  )}
                 </div>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-end space-x-2 mt-4">
                   <Button
                     size="sm"
+                    variant="outline"
                     onClick={() => handleEdit(test.id)}
                   >
                     Edit

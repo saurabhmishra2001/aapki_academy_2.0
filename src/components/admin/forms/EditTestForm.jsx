@@ -33,7 +33,8 @@ export default function EditTestForm() {
     useEffect(() => {
       const fetchTest = async () => {
         try {
-          const testData = await testService.getTestWithQuestions(testId);
+          const testData = await testService.getTestById(testId);
+      const questions = await testService.getQuestions(testId);
           setTest({
             ...testData,
             start_time: testData.start_time ? new Date(testData.start_time).toISOString().slice(0, 16) : '',
@@ -54,7 +55,21 @@ export default function EditTestForm() {
       setError('');
   
       try {
-        await testService.updateTest(testId, test);
+        await testService.updateTest(testId, {
+          ...test,
+          updatedAt: new Date(),
+          questions: undefined
+        });
+
+        // Update questions
+        const questionPromises = test.questions.map(question => {
+          if (question.id) {
+            return testService.updateQuestion(question.id, question);
+          } else {
+            return testService.createQuestion(testId, question);
+          }
+        });
+        await Promise.all(questionPromises);
         toast({
           title: 'Success',
           description: 'Test updated successfully',
