@@ -1,16 +1,30 @@
 import { db, storage } from '../utils/firebaseConfig';
-import { collection, doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy
+} from 'firebase/firestore';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
 
 export const documentService = {
   async createDocument(documentData, file) {
     try {
-      // First upload the file to storage
       const storageRef = ref(storage, `documents/${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Then create the document record in Firestore
       const docRef = await addDoc(collection(db, 'documents'), {
         ...documentData,
         fileUrl: downloadURL,
@@ -21,14 +35,14 @@ export const documentService = {
         updatedAt: new Date().toISOString()
       });
 
-      return { 
-        data: { 
-          id: docRef.id, 
-          ...documentData, 
+      return {
+        data: {
+          id: docRef.id,
+          ...documentData,
           fileUrl: downloadURL,
-          fileName: file.name 
-        }, 
-        error: null 
+          fileName: file.name
+        },
+        error: null
       };
     } catch (error) {
       return { data: null, error };
@@ -51,20 +65,18 @@ export const documentService = {
   async getAllDocuments(filters = {}, sortOptions = {}) {
     try {
       let q = collection(db, 'documents');
-      
-      // Apply filters
+
       if (filters.category) {
         q = query(q, where('category', '==', filters.category));
       }
       if (filters.type) {
         q = query(q, where('fileType', '==', filters.type));
       }
-      
-      // Apply sorting
+
       if (sortOptions.field) {
         q = query(q, orderBy(sortOptions.field, sortOptions.direction || 'asc'));
       }
-      
+
       const querySnapshot = await getDocs(q);
       const documents = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -79,17 +91,21 @@ export const documentService = {
   async updateDocument(documentId, updateData, newFile = null) {
     try {
       let fileUrl = updateData.fileUrl;
-      
-      // If there's a new file, upload it and get the new URL
-      if (newFile) {
-        const storageRef = ref(storage, `documents/${newFile.name}`);
-        await uploadBytes(storageRef, newFile);
-        fileUrl = await getDownloadURL(storageRef);
+      let fileName = updateData.fileName;
+      let fileType = updateData.fileType;
+      let fileSize = updateData.fileSize;
 
-        // Delete the old file if it exists
+      if (newFile) {
+        const newStorageRef = ref(storage, `documents/${newFile.name}`);
+        await uploadBytes(newStorageRef, newFile);
+        fileUrl = await getDownloadURL(newStorageRef);
+        fileName = newFile.name;
+        fileType = newFile.type;
+        fileSize = newFile.size;
+
         if (updateData.fileName) {
           const oldFileRef = ref(storage, `documents/${updateData.fileName}`);
-          await deleteObject(oldFileRef).catch(error => console.log('Old file not found:', error));
+          await deleteObject(oldFileRef).catch(err => console.log('Old file not found:', err));
         }
       }
 
@@ -97,9 +113,9 @@ export const documentService = {
       const updatedData = {
         ...updateData,
         fileUrl,
-        fileName: newFile ? newFile.name : updateData.fileName,
-        fileType: newFile ? newFile.type : updateData.fileType,
-        fileSize: newFile ? newFile.size : updateData.fileSize,
+        fileName,
+        fileType,
+        fileSize,
         updatedAt: new Date().toISOString()
       };
 
@@ -112,11 +128,9 @@ export const documentService = {
 
   async deleteDocument(documentId, fileName) {
     try {
-      // Delete the file from storage
       const storageRef = ref(storage, `documents/${fileName}`);
       await deleteObject(storageRef);
 
-      // Delete the document record from Firestore
       await deleteDoc(doc(db, 'documents', documentId));
       return { data: { id: documentId }, error: null };
     } catch (error) {

@@ -53,6 +53,9 @@ export default function Navbar() {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
+  const [testsMenuAnchor, setTestsMenuAnchor] = useState(null);
+  const [proTestsMenuAnchor, setProTestsMenuAnchor] = useState(null);
+  const [subjectTestsMenuAnchor, setSubjectTestsMenuAnchor] = useState(null);
 
   const isAdmin = user?.role === 'admin';
 
@@ -63,6 +66,25 @@ export default function Navbar() {
   const handleUserMenuClose = () => setUserMenuAnchor(null);
   const handleAdminMenuOpen = (event) => setAdminMenuAnchor(event.currentTarget);
   const handleAdminMenuClose = () => setAdminMenuAnchor(null);
+  
+  // Test menu handlers
+  const handleTestsMenuOpen = (event) => setTestsMenuAnchor(event.currentTarget);
+  const handleTestsMenuClose = () => setTestsMenuAnchor(null);
+  const handleProTestsMenuOpen = (event) => {
+    setProTestsMenuAnchor(event.currentTarget);
+  };
+  const handleProTestsMenuClose = () => setProTestsMenuAnchor(null);
+  const handleSubjectTestsMenuOpen = (event) => {
+    setSubjectTestsMenuAnchor(event.currentTarget);
+  };
+  const handleSubjectTestsMenuClose = () => setSubjectTestsMenuAnchor(null);
+  
+  // Close all test menus
+  const closeAllTestMenus = () => {
+    handleTestsMenuClose();
+    handleProTestsMenuClose();
+    handleSubjectTestsMenuClose();
+  };
 
   const handleLogout = async () => {
     try {
@@ -80,7 +102,31 @@ export default function Navbar() {
     { id: 'courses', text: 'Courses', icon: <CoursesIcon />, path: '/courses' },
     { id: 'videos', text: 'Videos', icon: <VideosIcon />, path: '/videos' },
     { id: 'documents', text: 'Documents', icon: <DocumentsIcon />, path: '/documents' },
-    { id: 'tests', text: 'Tests', icon: <TestsIcon />, path: '/pyq-tests' },
+    { 
+      id: 'tests',
+      text: 'Tests', 
+      icon: <TestsIcon />,
+      subItems: [
+        { id: 'free-tests', text: 'Free Test', path: '/free-tests' },
+        { 
+          id: 'pro-tests', 
+          text: 'Pro', 
+          subItems: [
+            { id: 'mcq-tests', text: 'MCQs', path: '/mcq-tests' },
+            { id: 'pyq-tests', text: 'PYQs', path: '/pyq-tests' },
+            { 
+              id: 'subject-tests', 
+              text: 'Subject-wise',
+              subItems: [
+                { id: 'nta-tests', text: 'NTA', path: '/nta-tests' },
+                { id: 'ugc-net-tests', text: 'UGC NET', path: '/ugc-net-tests' },
+                { id: 'jrf-tests', text: 'JRF', path: '/jrf-tests' }
+              ]
+            }
+          ]
+        }
+      ]
+    },
   ];
 
   // Navigation items for admin users
@@ -96,9 +142,9 @@ export default function Navbar() {
       subItems: [
         { id: 'all-tests', text: 'All Tests', path: '/admin/tests' },
         { id: 'create-test', text: 'Create Test', path: '/admin/create-test' },
-        { id: 'edit-test', text: 'Edit Test', path: '/admin/edit-test' },
-        { id: 'active-tests', text: 'Active Tests', path: '/admin/active-tests' },
-        { id: 'total-tests', text: 'Total Tests', path: '/admin/total-tests' },
+        // { id: 'edit-test', text: 'Edit Test', path: '/admin/edit-test' },
+        // { id: 'active-tests', text: 'Active Tests', path: '/admin/active-tests' },
+        // { id: 'total-tests', text: 'Total Tests', path: '/admin/total-tests' },
       ]
     },
     { text: 'Users', icon: <UsersIcon />, path: '/admin/total-users' },
@@ -158,12 +204,170 @@ export default function Navbar() {
             spacing={1}
             sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}
           >
-            {currentNavItems.map((item) => (
-              item.subItems ? (
-                <Box>
+            {currentNavItems.map((item) => {
+              // Handle Tests menu with nested structure
+              if (item.id === 'tests' && item.subItems) {
+                return (
+                  <Box key={item.id}>
+                    <Button
+                      onClick={handleTestsMenuOpen}
+                      startIcon={item.icon}
+                      sx={{
+                        color: 'inherit',
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                      }}
+                    >
+                      {item.text}
+                    </Button>
+                    
+                    {/* First level menu: Free Test and Pro */}
+                    <Menu
+                      anchorEl={testsMenuAnchor}
+                      open={Boolean(testsMenuAnchor)}
+                      onClose={handleTestsMenuClose}
+                    >
+                      {item.subItems.map((subItem) => {
+                        if (subItem.id === 'pro-tests' && subItem.subItems) {
+                          // Pro tests with nested options
+                          return (
+                            <MenuItem
+                              key={subItem.id}
+                              onClick={handleProTestsMenuOpen}
+                              sx={{ position: 'relative' }}
+                            >
+                              <ListItemText>{subItem.text}</ListItemText>
+                              
+                              {/* Second level menu: MCQs, PYQs, Subject-wise */}
+                              <Menu
+                                anchorEl={proTestsMenuAnchor}
+                                open={Boolean(proTestsMenuAnchor)}
+                                onClose={handleProTestsMenuClose}
+                                anchorOrigin={{
+                                  vertical: 'top',
+                                  horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                  vertical: 'top',
+                                  horizontal: 'left',
+                                }}
+                              >
+                                {subItem.subItems.map((proSubItem) => {
+                                  if (proSubItem.id === 'subject-tests' && proSubItem.subItems) {
+                                    // Subject-wise with nested options
+                                    return (
+                                      <MenuItem
+                                        key={proSubItem.id}
+                                        onClick={handleSubjectTestsMenuOpen}
+                                        sx={{ position: 'relative' }}
+                                      >
+                                        <ListItemText>{proSubItem.text}</ListItemText>
+                                        
+                                        {/* Third level menu: NTA, UGC NET, JRF */}
+                                        <Menu
+                                          anchorEl={subjectTestsMenuAnchor}
+                                          open={Boolean(subjectTestsMenuAnchor)}
+                                          onClose={handleSubjectTestsMenuClose}
+                                          anchorOrigin={{
+                                            vertical: 'top',
+                                            horizontal: 'right',
+                                          }}
+                                          transformOrigin={{
+                                            vertical: 'top',
+                                            horizontal: 'left',
+                                          }}
+                                        >
+                                          {proSubItem.subItems.map((subjectItem) => (
+                                            <MenuItem
+                                              key={subjectItem.id}
+                                              component={Link}
+                                              to={subjectItem.path}
+                                              onClick={closeAllTestMenus}
+                                            >
+                                              <ListItemText>{subjectItem.text}</ListItemText>
+                                            </MenuItem>
+                                          ))}
+                                        </Menu>
+                                      </MenuItem>
+                                    );
+                                  } else {
+                                    // Regular MCQs and PYQs items
+                                    return (
+                                      <MenuItem
+                                        key={proSubItem.id}
+                                        component={Link}
+                                        to={proSubItem.path}
+                                        onClick={closeAllTestMenus}
+                                      >
+                                        <ListItemText>{proSubItem.text}</ListItemText>
+                                      </MenuItem>
+                                    );
+                                  }
+                                })}
+                              </Menu>
+                            </MenuItem>
+                          );
+                        } else {
+                          // Free Test item
+                          return (
+                            <MenuItem
+                              key={subItem.id}
+                              component={Link}
+                              to={subItem.path}
+                              onClick={closeAllTestMenus}
+                            >
+                              <ListItemText>{subItem.text}</ListItemText>
+                            </MenuItem>
+                          );
+                        }
+                      })}
+                    </Menu>
+                  </Box>
+                );
+              }
+              // Handle Admin menu with subItems
+              else if (item.subItems) {
+                return (
+                  <Box key={item.id}>
+                    <Button
+                      onClick={handleAdminMenuOpen}
+                      startIcon={item.icon}
+                      sx={{
+                        color: 'inherit',
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                      }}
+                    >
+                      {item.text}
+                    </Button>
+                    <Menu
+                      anchorEl={adminMenuAnchor}
+                      open={Boolean(adminMenuAnchor)}
+                      onClose={handleAdminMenuClose}
+                    >
+                      {item.subItems.map((subItem) => (
+                        <MenuItem
+                          key={subItem.id || subItem.path}
+                          component={Link}
+                          to={subItem.path}
+                          onClick={handleAdminMenuClose}
+                        >
+                          <ListItemText>{subItem.text}</ListItemText>
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </Box>
+                );
+              } 
+              // Regular menu items
+              else {
+                return (
                   <Button
-                    key={item.text}
-                    onClick={handleAdminMenuOpen}
+                    key={item.id}
+                    component={Link}
+                    to={item.path}
                     startIcon={item.icon}
                     sx={{
                       color: 'inherit',
@@ -174,40 +378,9 @@ export default function Navbar() {
                   >
                     {item.text}
                   </Button>
-                  <Menu
-                    anchorEl={adminMenuAnchor}
-                    open={Boolean(adminMenuAnchor)}
-                    onClose={handleAdminMenuClose}
-                  >
-                    {item.subItems.map((subItem) => (
-                      <MenuItem
-                        key={subItem.path}
-                        component={Link}
-                        to={subItem.path}
-                        onClick={handleAdminMenuClose}
-                      >
-                        <ListItemText>{subItem.text}</ListItemText>
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </Box>
-              ) : (
-                <Button
-                  key={item.path}
-                  component={Link}
-                  to={item.path}
-                  startIcon={item.icon}
-                  sx={{
-                    color: 'inherit',
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
-                    },
-                  }}
-                >
-                  {item.text}
-                </Button>
-              )
-            ))}
+                );
+              }
+            })}
 
             {/* Dark Mode Toggle */}
             <IconButton
@@ -335,45 +508,156 @@ export default function Navbar() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {currentNavItems.map((item) => (
-                item.subItems ? (
-                  <div key={item.text}>
-                    <MenuItem onClick={handleAdminMenuOpen}>
+              {currentNavItems.map((item) => {
+                // Handle Tests menu with nested structure
+                if (item.id === 'tests' && item.subItems) {
+                  return (
+                    <div key={item.id}>
+                      <MenuItem onClick={handleTestsMenuOpen}>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText>{item.text}</ListItemText>
+                      </MenuItem>
+                      
+                      {/* First level menu: Free Test and Pro */}
+                      <Menu
+                        anchorEl={testsMenuAnchor}
+                        open={Boolean(testsMenuAnchor)}
+                        onClose={handleTestsMenuClose}
+                      >
+                        {item.subItems.map((subItem) => {
+                          if (subItem.id === 'pro-tests' && subItem.subItems) {
+                            // Pro tests with nested options
+                            return (
+                              <MenuItem
+                                key={subItem.id}
+                                onClick={handleProTestsMenuOpen}
+                              >
+                                <ListItemText inset>{subItem.text}</ListItemText>
+                                
+                                {/* Second level menu: MCQs, PYQs, Subject-wise */}
+                                <Menu
+                                  anchorEl={proTestsMenuAnchor}
+                                  open={Boolean(proTestsMenuAnchor)}
+                                  onClose={handleProTestsMenuClose}
+                                >
+                                  {subItem.subItems.map((proSubItem) => {
+                                    if (proSubItem.id === 'subject-tests' && proSubItem.subItems) {
+                                      // Subject-wise with nested options
+                                      return (
+                                        <MenuItem
+                                          key={proSubItem.id}
+                                          onClick={handleSubjectTestsMenuOpen}
+                                        >
+                                          <ListItemText inset>{proSubItem.text}</ListItemText>
+                                          
+                                          {/* Third level menu: NTA, UGC NET, JRF */}
+                                          <Menu
+                                            anchorEl={subjectTestsMenuAnchor}
+                                            open={Boolean(subjectTestsMenuAnchor)}
+                                            onClose={handleSubjectTestsMenuClose}
+                                          >
+                                            {proSubItem.subItems.map((subjectItem) => (
+                                              <MenuItem
+                                                key={subjectItem.id}
+                                                component={Link}
+                                                to={subjectItem.path}
+                                                onClick={() => {
+                                                  handleMobileMenuClose();
+                                                  closeAllTestMenus();
+                                                }}
+                                              >
+                                                <ListItemText inset>{subjectItem.text}</ListItemText>
+                                              </MenuItem>
+                                            ))}
+                                          </Menu>
+                                        </MenuItem>
+                                      );
+                                    } else {
+                                      // Regular MCQs and PYQs items
+                                      return (
+                                        <MenuItem
+                                          key={proSubItem.id}
+                                          component={Link}
+                                          to={proSubItem.path}
+                                          onClick={() => {
+                                            handleMobileMenuClose();
+                                            closeAllTestMenus();
+                                          }}
+                                        >
+                                          <ListItemText inset>{proSubItem.text}</ListItemText>
+                                        </MenuItem>
+                                      );
+                                    }
+                                  })}
+                                </Menu>
+                              </MenuItem>
+                            );
+                          } else {
+                            // Free Test item
+                            return (
+                              <MenuItem
+                                key={subItem.id}
+                                component={Link}
+                                to={subItem.path}
+                                onClick={() => {
+                                  handleMobileMenuClose();
+                                  closeAllTestMenus();
+                                }}
+                              >
+                                <ListItemText inset>{subItem.text}</ListItemText>
+                              </MenuItem>
+                            );
+                          }
+                        })}
+                      </Menu>
+                    </div>
+                  );
+                }
+                // Handle Admin menu with subItems
+                else if (item.subItems) {
+                  return (
+                    <div key={item.id}>
+                      <MenuItem onClick={handleAdminMenuOpen}>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText>{item.text}</ListItemText>
+                      </MenuItem>
+                      <Menu
+                        anchorEl={adminMenuAnchor}
+                        open={Boolean(adminMenuAnchor)}
+                        onClose={handleAdminMenuClose}
+                      >
+                        {item.subItems.map((subItem) => (
+                          <MenuItem
+                            key={subItem.id || subItem.path}
+                            component={Link}
+                            to={subItem.path}
+                            onClick={() => {
+                              handleMobileMenuClose();
+                              handleAdminMenuClose();
+                            }}
+                          >
+                            <ListItemText inset>{subItem.text}</ListItemText>
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
+                  );
+                } 
+                // Regular menu items
+                else {
+                  return (
+                    <MenuItem
+                      key={item.id}
+                      component={Link}
+                      to={item.path}
+                      onClick={handleMobileMenuClose}
+                    >
                       <ListItemIcon>{item.icon}</ListItemIcon>
                       <ListItemText>{item.text}</ListItemText>
                     </MenuItem>
-                    <Menu
-                      anchorEl={adminMenuAnchor}
-                      open={Boolean(adminMenuAnchor)}
-                      onClose={handleAdminMenuClose}
-                    >
-                      {item.subItems.map((subItem) => (
-                        <MenuItem
-                          key={subItem.path}
-                          component={Link}
-                          to={subItem.path}
-                          onClick={() => {
-                            handleMobileMenuClose();
-                            handleAdminMenuClose();
-                          }}
-                        >
-                          <ListItemText inset>{subItem.text}</ListItemText>
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </div>
-                ) : (
-                  <MenuItem
-                    key={item.path}
-                    component={Link}
-                    to={item.path}
-                    onClick={handleMobileMenuClose}
-                  >
-                    <ListItemIcon>{item.icon}</ListItemIcon>
-                    <ListItemText>{item.text}</ListItemText>
-                  </MenuItem>
-                )
-              ))}
+                  );
+                }
+              })}
 
               {user ? (
                 <Box>

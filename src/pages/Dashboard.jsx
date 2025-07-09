@@ -9,7 +9,7 @@ export default function Dashboard() {
   const [isFormComplete, setIsFormComplete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isTestOverviewUnderMaintenance, setIsTestOverviewUnderMaintenance] = useState(true);
+  const [isTestOverviewUnderMaintenance, setIsTestOverviewUnderMaintenance] = useState(false); // Set to false to display TestTabs
 
   // On component mount, check if the form has been completed
   useEffect(() => {

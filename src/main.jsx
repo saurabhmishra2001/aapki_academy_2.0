@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 
+
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
   constructor(props) {

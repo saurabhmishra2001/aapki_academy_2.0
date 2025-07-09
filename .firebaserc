@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "aapki-academy"
-  }
+    "default": "aapki-academy",
+    "aapki-academy": "aapki-academy",
+    "staging": "aapki-academy"
+  },
+  "targets": {},
+  "etags": {}
 }

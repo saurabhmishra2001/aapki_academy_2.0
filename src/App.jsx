@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import './index.css';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
@@ -13,7 +13,7 @@ import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 
-// Lazy load components for better performance
+// Lazy loaded pages
 const Home = React.lazy(() => import('./pages/Home'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const Signup = React.lazy(() => import('./pages/auth/Signup'));
@@ -26,7 +26,7 @@ const TestPage = React.lazy(() => import('./pages/TestPage'));
 const TestResult = React.lazy(() => import('./pages/TestResult'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
-// Admin components
+// Admin pages
 const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminCourses = React.lazy(() => import('./pages/admin/Courses'));
@@ -39,15 +39,11 @@ const ActiveTests = React.lazy(() => import('./pages/admin/ActiveTests'));
 const TotalTests = React.lazy(() => import('./pages/admin/TotalTests'));
 const TotalUsers = React.lazy(() => import('./pages/admin/TotalUsers'));
 const AdminRequests = React.lazy(() => import('./pages/admin/AdminRequests'));
+const TestDetails = React.lazy(() => import('./pages/admin/TestDetails')); // ✅ New
 
-// Loading component for Suspense fallback
+// Fallback loader
 const LoadingFallback = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    height: '100vh' 
-  }}>
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
     <div>Loading...</div>
   </div>
 );
@@ -59,12 +55,7 @@ function AppContent() {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        minHeight: '100vh',
-        backgroundColor: theme.palette.background.default 
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
         <Navbar />
         <main style={{ flex: 1 }}>
           <Suspense fallback={<LoadingFallback />}>
@@ -73,8 +64,8 @@ function AppContent() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              
-              {/* User Protected Routes */}
+
+              {/* User Routes */}
               <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
               <Route path="/courses" element={<PrivateRoute><Courses /></PrivateRoute>} />
               <Route path="/documents" element={<PrivateRoute><Documents /></PrivateRoute>} />
@@ -84,25 +75,24 @@ function AppContent() {
               <Route path="/test-result/:attemptId" element={<PrivateRoute><TestResult /></PrivateRoute>} />
 
               {/* Admin Routes */}
-              <Route path="/admin">
-                <Route path="login" element={<AdminLogin />} />
-                <Route path="dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
-                <Route path="videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
-                <Route path="documents" element={<AdminRoute><AdminDocuments /></AdminRoute>} />
-                <Route path="create-test" element={<AdminRoute><CreateTest /></AdminRoute>} />
-                <Route path="tests" element={<AdminRoute><AdminTests /></AdminRoute>} />
-                <Route path="edit-test" element={<AdminRoute><EditTestForm /></AdminRoute>} />
-                <Route path="edit-test/:testId" element={<AdminRoute><EditTestForm /></AdminRoute>} />
-                <Route path="active-tests" element={<AdminRoute><ActiveTests /></AdminRoute>} />
-                <Route path="total-tests" element={<AdminRoute><TotalTests /></AdminRoute>} />
-                <Route path="total-users" element={<AdminRoute><TotalUsers /></AdminRoute>} />
-                <Route path="requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
-                <Route path="profile" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="settings" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              </Route>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
+              <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
+              <Route path="/admin/documents" element={<AdminRoute><AdminDocuments /></AdminRoute>} />
+              <Route path="/admin/create-test" element={<AdminRoute><CreateTest /></AdminRoute>} />
+              <Route path="/admin/tests" element={<AdminRoute><AdminTests /></AdminRoute>} />
+              <Route path="/admin/edit-test" element={<AdminRoute><EditTestForm /></AdminRoute>} />
+              <Route path="/admin/edit-test/:testId" element={<AdminRoute><EditTestForm /></AdminRoute>} />
+              <Route path="/admin/active-tests" element={<AdminRoute><ActiveTests /></AdminRoute>} />
+              <Route path="/admin/total-tests" element={<AdminRoute><TotalTests /></AdminRoute>} />
+              <Route path="/admin/test-details/:testId" element={<AdminRoute><TestDetails /></AdminRoute>} /> {/* ✅ Added */}
+              <Route path="/admin/total-users" element={<AdminRoute><TotalUsers /></AdminRoute>} />
+              <Route path="/admin/requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
+              <Route path="/admin/profile" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/settings" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
-              {/* Catch-all route for 404 */}
+              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
