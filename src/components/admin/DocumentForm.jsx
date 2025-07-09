@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Alert } from '../ui/alert';
-import { adminService } from '../../services/adminService';
+import { documentService } from '../../services/documentService'; // ✅ Use this instead
 import { useToast } from '../../hooks/useToast';
 
 export default function DocumentForm({ onDocumentCreated, initialDocument }) {
@@ -20,7 +20,12 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
 
   useEffect(() => {
     if (initialDocument) {
-      setFormData(initialDocument);
+      setFormData({
+        title: initialDocument.title || '',
+        subject: initialDocument.subject || '',
+        description: initialDocument.description || '',
+        file: null // Don't prefill file input
+      });
     }
   }, [initialDocument]);
 
@@ -31,15 +36,19 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
 
     try {
       if (initialDocument) {
-        await adminService.updateDocument(initialDocument.id, formData);
+        await documentService.updateDocument(initialDocument.id, initialDocument, formData.file);
       } else {
-        await adminService.uploadDocument(formData);
+        const { file, title, subject, description } = formData;
+        if (!file) throw new Error('Please select a file');
+        await documentService.createDocument({ title, subject, description }, file);
       }
+
       toast({
         title: 'Success',
         description: 'Document saved successfully',
         type: 'success',
       });
+
       onDocumentCreated();
       setFormData({
         title: '',
@@ -48,7 +57,7 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
         file: null
       });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -73,7 +82,6 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
               value={formData.title}
               onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
               required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
@@ -84,7 +92,6 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
               value={formData.subject}
               onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))}
               required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
@@ -103,8 +110,7 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
             <Input
               type="file"
               onChange={(e) => setFormData((prev) => ({ ...prev, file: e.target.files[0] }))}
-              required
-              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required={!initialDocument} // Required only for new uploads
             />
           </div>
 
@@ -113,14 +119,14 @@ export default function DocumentForm({ onDocumentCreated, initialDocument }) {
               type="button"
               variant="outline"
               onClick={() => navigate('/admin/documents')}
-              className="bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-2 focus:ring-gray-400"
+              className="bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
+              className="bg-blue-500 text-white hover:bg-blue-600"
             >
               {loading ? 'Uploading...' : 'Upload Document'}
             </Button>

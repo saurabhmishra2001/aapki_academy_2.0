@@ -65,17 +65,43 @@ const TestForm = ({ onTestCreated }) => {
     });
   };
 
+  const validateQuestionFields = (question, index) => {
+    const errors = {};
+    
+    if (!question.question_text.trim()) {
+      errors.question_text = `Question ${index + 1} text is required`;
+    }
+    
+    question.options.forEach((opt, i) => {
+      if (!opt.trim()) {
+        errors[`option_${i}`] = `Option ${i + 1} is required`;
+      }
+    });
+    
+    if (!question.correct_answer.trim()) {
+      errors.correct_answer = "Correct answer is required";
+    } else if (!question.options.includes(question.correct_answer)) {
+      errors.correct_answer = "Correct answer must match one of the options";
+    }
+    
+    if (!question.marks || question.marks < 1) {
+      errors.marks = "Marks must be at least 1";
+    }
+    
+    return errors;
+  };
+
   const validateForm = () => {
     const errors = {};
 
     if (!test.title.trim()) errors.title = "Title is required";
     if (!test.duration || test.duration <= 0) errors.duration = "Duration must be positive";
     if (!test.total_marks || test.total_marks <= 0) errors.total_marks = "Total marks must be positive";
-
-    test.questions.forEach((q, index) => {
-      if (!q.question_text.trim()) errors[`question_${index}`] = "Question text is required";
-      if (!q.correct_answer.trim()) errors[`question_${index}_answer`] = "Correct answer is required";
-    });
+    
+    const questionErrors = test.questions.map((q, i) => validateQuestionFields(q, i));
+    if (questionErrors.some(err => Object.keys(err).length > 0)) {
+      errors.questions = questionErrors;
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -84,11 +110,21 @@ const TestForm = ({ onTestCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    
+    if (!test.questions.length) {
+      setError("Please add at least one question");
+      return;
+    }
+    
     if (validateForm()) {
       setLoading(true);
       try {
         const { testService } = await import("../../../services/testService");
-        await testService.createTest(test);
+        await testService.createTest({
+          ...test,
+          created_at: new Date(),
+          updated_at: new Date()
+        });
         if (onTestCreated) onTestCreated();
       } catch (err) {
         setError(err.message || "Failed to create test");
@@ -103,65 +139,82 @@ const TestForm = ({ onTestCreated }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="details" className="w-full">
-        <TabsList>
-          <TabsTrigger value="details">Test Details</TabsTrigger>
-          <TabsTrigger value="questions">Questions</TabsTrigger>
+        <TabsList className="w-full mb-4">
+          <TabsTrigger value="details" className="flex-1">Test Details</TabsTrigger>
+          <TabsTrigger value="questions" className="flex-1">Questions ({test.questions.length})</TabsTrigger>
         </TabsList>
 
         {/* Details Tab */}
         <TabsContent value="details" className="mt-6">
-          <Card className="p-4 space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={test.title}
-                onChange={(e) => handleTestFieldChange("title", e.target.value)}
-              />
-              {formErrors.title && <p className="text-sm text-red-500">{formErrors.title}</p>}
+          <Card className="p-6 space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={test.title}
+                  onChange={(e) => handleTestFieldChange("title", e.target.value)}
+                  placeholder="Enter test title"
+                  className={formErrors.title ? "border-red-500" : ""}
+                />
+                {formErrors.title && (
+                  <p className="text-sm text-red-500">{formErrors.title}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration (minutes)</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min="1"
+                  value={test.duration}
+                  onChange={(e) => handleTestFieldChange("duration", parseInt(e.target.value) || 0)}
+                  className={formErrors.duration ? "border-red-500" : ""}
+                />
+                {formErrors.duration && (
+                  <p className="text-sm text-red-500">{formErrors.duration}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="total_marks">Total Marks</Label>
+                <Input
+                  id="total_marks"
+                  type="number"
+                  min="1"
+                  value={test.total_marks}
+                  onChange={(e) => handleTestFieldChange("total_marks", parseInt(e.target.value) || 0)}
+                  className={formErrors.total_marks ? "border-red-500" : ""}
+                />
+                {formErrors.total_marks && (
+                  <p className="text-sm text-red-500">{formErrors.total_marks}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={test.status}
+                  onChange={(e) => handleTestFieldChange("status", e.target.value)}
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
             </div>
 
-            <div>
-              <Label>Duration (minutes)</Label>
-              <Input
-                type="number"
-                value={test.duration}
-                onChange={(e) => handleTestFieldChange("duration", parseInt(e.target.value) || 0)}
-              />
-              {formErrors.duration && (
-                <p className="text-sm text-red-500">{formErrors.duration}</p>
-              )}
-            </div>
-
-            <div>
-              <Label>Total Marks</Label>
-              <Input
-                type="number"
-                value={test.total_marks}
-                onChange={(e) => handleTestFieldChange("total_marks", parseInt(e.target.value) || 0)}
-              />
-              {formErrors.total_marks && (
-                <p className="text-sm text-red-500">{formErrors.total_marks}</p>
-              )}
-            </div>
-
-            <div>
-              <Label>Description</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
               <Textarea
+                id="description"
                 value={test.description}
                 onChange={(e) => handleTestFieldChange("description", e.target.value)}
+                placeholder="Enter test description"
+                rows={4}
               />
-            </div>
-
-            <div>
-              <Label>Status</Label>
-              <select
-                className="border rounded p-2 w-full"
-                value={test.status}
-                onChange={(e) => handleTestFieldChange("status", e.target.value)}
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
             </div>
           </Card>
         </TabsContent>
@@ -170,80 +223,110 @@ const TestForm = ({ onTestCreated }) => {
         <TabsContent value="questions" className="mt-6">
           <div className="space-y-6">
             {test.questions.map((q, i) => (
-              <Card key={i} className="p-4">
-                <div className="mb-2">
-                  <Label>Question {i + 1}</Label>
-                  <Textarea
-                    value={q.question_text}
-                    onChange={(e) => updateQuestionField(i, "question_text", e.target.value)}
-                  />
-                  {formErrors[`question_${i}`] && (
-                    <p className="text-sm text-red-500">{formErrors[`question_${i}`]}</p>
-                  )}
+              <Card key={i} className="p-6 relative">
+                <div className="absolute top-4 right-4">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeQuestion(i)}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Remove
+                  </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {q.options.map((opt, j) => (
-                    <div key={j}>
-                      <Label>Option {j + 1}</Label>
+                <div className="space-y-6">
+                  <div>
+                    <Label className="text-lg font-semibold">Question {i + 1}</Label>
+                    <Textarea
+                      value={q.question_text}
+                      onChange={(e) => updateQuestionField(i, "question_text", e.target.value)}
+                      placeholder="Enter your question"
+                      className="mt-2"
+                      rows={3}
+                    />
+                    {formErrors.questions?.[i]?.question_text && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {formErrors.questions[i].question_text}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {q.options.map((opt, j) => (
+                      <div key={j} className="space-y-2">
+                        <Label>Option {j + 1}</Label>
+                        <Input
+                          value={opt}
+                          onChange={(e) => updateQuestionOption(i, j, e.target.value)}
+                          placeholder={`Enter option ${j + 1}`}
+                          className={formErrors.questions?.[i]?.[`option_${j}`] ? "border-red-500" : ""}
+                        />
+                        {formErrors.questions?.[i]?.[`option_${j}`] && (
+                          <p className="text-sm text-red-500">
+                            {formErrors.questions[i][`option_${j}`]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Correct Answer</Label>
                       <Input
-                        value={opt}
-                        onChange={(e) => updateQuestionOption(i, j, e.target.value)}
+                        value={q.correct_answer}
+                        onChange={(e) => updateQuestionField(i, "correct_answer", e.target.value)}
+                        placeholder="Enter the correct answer"
+                        className={formErrors.questions?.[i]?.correct_answer ? "border-red-500" : ""}
                       />
+                      {formErrors.questions?.[i]?.correct_answer && (
+                        <p className="text-sm text-red-500">
+                          {formErrors.questions[i].correct_answer}
+                        </p>
+                      )}
                     </div>
-                  ))}
-                </div>
 
-                <div className="mt-2">
-                  <Label>Correct Answer</Label>
-                  <Input
-                    value={q.correct_answer}
-                    onChange={(e) =>
-                      updateQuestionField(i, "correct_answer", e.target.value)
-                    }
-                  />
-                  {formErrors[`question_${i}_answer`] && (
-                    <p className="text-sm text-red-500">
-                      {formErrors[`question_${i}_answer`]}
-                    </p>
-                  )}
+                    <div className="space-y-2">
+                      <Label>Marks</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={q.marks}
+                        onChange={(e) => updateQuestionField(i, "marks", parseInt(e.target.value) || 1)}
+                        className={formErrors.questions?.[i]?.marks ? "border-red-500" : ""}
+                      />
+                      {formErrors.questions?.[i]?.marks && (
+                        <p className="text-sm text-red-500">
+                          {formErrors.questions[i].marks}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                <div className="mt-2">
-                  <Label>Marks</Label>
-                  <Input
-                    type="number"
-                    value={q.marks}
-                    onChange={(e) =>
-                      updateQuestionField(i, "marks", parseInt(e.target.value) || 1)
-                    }
-                  />
-                </div>
-
-                <Button
-                  variant="destructive"
-                  className="mt-4"
-                  type="button"
-                  onClick={() => removeQuestion(i)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Remove Question
-                </Button>
               </Card>
             ))}
 
-            <Button type="button" onClick={addQuestion}>
-              <Plus className="h-4 w-4 mr-2" /> Add Question
+            <Button
+              type="button"
+              onClick={addQuestion}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Question
             </Button>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Error Alert if total marks mismatch */}
+      {/* Error and Validation Alerts */}
       {totalQuestionsMarks !== test.total_marks && (
         <Alert variant="destructive">
           <AlertTitle>Mismatch in Marks</AlertTitle>
           <AlertDescription>
-            Sum of question marks ({totalQuestionsMarks}) does not match total test marks ({test.total_marks}).
+            Sum of question marks ({totalQuestionsMarks}) does not match total test marks ({test.total_marks}). Please adjust the marks to match.
           </AlertDescription>
         </Alert>
       )}
@@ -254,7 +337,22 @@ const TestForm = ({ onTestCreated }) => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Test"}</Button>
+
+      <div className="flex justify-end gap-4">
+        <Button type="submit" disabled={loading} className="min-w-[120px]">
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Saving...
+            </span>
+          ) : (
+            "Save Test"
+          )}
+        </Button>
+      </div>
     </form>
   );
 };

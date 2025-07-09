@@ -49,11 +49,11 @@ export const testService = {
     }
   },
 
-  getActiveTests: async () => {
+  getAvailableTests: async () => {
     try {
       const testsQuery = query(
         collection(db, 'tests'),
-        where('status', '==', 'active'),
+        where('status', 'in', ['active', 'upcoming']),
         orderBy('createdAt', 'desc')
       );
       const querySnapshot = await getDocs(testsQuery);
@@ -63,7 +63,7 @@ export const testService = {
       }));
       return tests;
     } catch (error) {
-      console.error('Error fetching active tests:', error);
+      console.error('Error fetching available tests:', error);
       throw error;
     }
   },
