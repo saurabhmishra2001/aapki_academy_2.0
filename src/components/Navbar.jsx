@@ -112,14 +112,13 @@ export default function Navbar() {
           id: 'pro-tests', 
           text: 'Pro', 
           subItems: [
-            { id: 'mcq-tests', text: 'MCQs', path: '/mcq-tests' },
             { id: 'pyq-tests', text: 'PYQs', path: '/pyq-tests' },
             { 
               id: 'subject-tests', 
               text: 'Subject-wise',
               subItems: [
                 { id: 'nta-tests', text: 'NTA', path: '/nta-tests' },
-                { id: 'ugc-net-tests', text: 'UGC NET', path: '/ugc-net-tests' },
+                { id: 'ugc-net-tests', text: 'UGC NET', path: '/ugcnet-tests' },
                 { id: 'jrf-tests', text: 'JRF', path: '/jrf-tests' }
               ]
             }
@@ -283,7 +282,10 @@ export default function Navbar() {
                                               key={subjectItem.id}
                                               component={Link}
                                               to={subjectItem.path}
-                                              onClick={closeAllTestMenus}
+                                              onClick={() => {
+                                                closeAllTestMenus();
+                                                navigate(subjectItem.path);
+                                              }}
                                             >
                                               <ListItemText>{subjectItem.text}</ListItemText>
                                             </MenuItem>
@@ -298,7 +300,10 @@ export default function Navbar() {
                                         key={proSubItem.id}
                                         component={Link}
                                         to={proSubItem.path}
-                                        onClick={closeAllTestMenus}
+                                        onClick={() => {
+                                          closeAllTestMenus();
+                                          navigate(proSubItem.path);
+                                        }}
                                       >
                                         <ListItemText>{proSubItem.text}</ListItemText>
                                       </MenuItem>
@@ -315,7 +320,10 @@ export default function Navbar() {
                               key={subItem.id}
                               component={Link}
                               to={subItem.path}
-                              onClick={closeAllTestMenus}
+                              onClick={() => {
+                                closeAllTestMenus();
+                                navigate(subItem.path);
+                              }}
                             >
                               <ListItemText>{subItem.text}</ListItemText>
                             </MenuItem>
@@ -352,7 +360,10 @@ export default function Navbar() {
                           key={subItem.id || subItem.path}
                           component={Link}
                           to={subItem.path}
-                          onClick={handleAdminMenuClose}
+                          onClick={() => {
+                            handleAdminMenuClose();
+                            navigate(subItem.path);
+                          }}
                         >
                           <ListItemText>{subItem.text}</ListItemText>
                         </MenuItem>
@@ -564,6 +575,7 @@ export default function Navbar() {
                                                 onClick={() => {
                                                   handleMobileMenuClose();
                                                   closeAllTestMenus();
+                                                  navigate(subjectItem.path);
                                                 }}
                                               >
                                                 <ListItemText inset>{subjectItem.text}</ListItemText>
@@ -582,6 +594,7 @@ export default function Navbar() {
                                           onClick={() => {
                                             handleMobileMenuClose();
                                             closeAllTestMenus();
+                                            navigate(proSubItem.path);
                                           }}
                                         >
                                           <ListItemText inset>{proSubItem.text}</ListItemText>
@@ -602,6 +615,7 @@ export default function Navbar() {
                                 onClick={() => {
                                   handleMobileMenuClose();
                                   closeAllTestMenus();
+                                  navigate(subItem.path);
                                 }}
                               >
                                 <ListItemText inset>{subItem.text}</ListItemText>
@@ -634,6 +648,7 @@ export default function Navbar() {
                             onClick={() => {
                               handleMobileMenuClose();
                               handleAdminMenuClose();
+                              navigate(subItem.path);
                             }}
                           >
                             <ListItemText inset>{subItem.text}</ListItemText>
@@ -650,7 +665,10 @@ export default function Navbar() {
                       key={item.id}
                       component={Link}
                       to={item.path}
-                      onClick={handleMobileMenuClose}
+                      onClick={() => {
+                        handleMobileMenuClose();
+                        navigate(item.path);
+                      }}
                     >
                       <ListItemIcon>{item.icon}</ListItemIcon>
                       <ListItemText>{item.text}</ListItemText>

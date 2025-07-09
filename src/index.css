@@ -3,7 +3,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 0.3s ease-in-out forwards;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;
