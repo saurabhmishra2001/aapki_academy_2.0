@@ -40,7 +40,7 @@ export default function PYQTests() {
   };
 
   const handleStartTest = (testId) => {
-    navigate(`/test/${testId}`);
+    navigate(`/pyq-tests/${testId}`);
   };
 
   if (loading) {
