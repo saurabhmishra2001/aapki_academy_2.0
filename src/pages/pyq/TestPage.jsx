@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { pyqTestService } from '../services/pyqTestService';
+import { testService } from '../../services/testService';
 
 export default function TestPage() {
   const { testId } = useParams();
@@ -22,24 +22,24 @@ export default function TestPage() {
         setTimeLeft((prev) => {
           const newTime = prev - 1;
           // Show warning when time is 10% left
-          if (!showWarning && newTime <= test.duration * 6) {
+          if (!showWarning && test && newTime <= test.duration * 6) {
             setShowWarning(true);
           }
           return newTime;
         });
       }, 1000);
 
-      return () => clearInterval(timer); // Clear the timer on component unmount
+      return () => clearInterval(timer);
     } else if (timeLeft === 0 && test) {
-      handleSubmit(); // Auto-submit when time runs out
+      handleSubmit();
     }
   }, [timeLeft, showWarning, test]);
 
   const loadTest = async () => {
     try {
-      const data = await pyqTestService.getTestWithQuestions(testId);
+      const data = await testService.getTestById(testId); // Update service usage here
       setTest(data);
-      setTimeLeft(data.duration * 60); // Convert duration to seconds
+      setTimeLeft(data.duration * 60);
     } catch (error) {
       console.error('Error loading test:', error);
     } finally {
@@ -59,7 +59,7 @@ export default function TestPage() {
 
   const handleSubmit = async () => {
     try {
-      const attempt = await pyqTestService.submitTestAttempt(testId, answers);
+      const attempt = await testService.submitTestAttempt(testId, answers); // Update service usage here
       navigate(`/test-result/${attempt.id}`);
     } catch (error) {
       console.error('Error submitting test:', error);
@@ -112,6 +112,7 @@ export default function TestPage() {
                 }`}
             >
               <input
+
                 type="radio"
                 name={question.id}
                 value={option}
