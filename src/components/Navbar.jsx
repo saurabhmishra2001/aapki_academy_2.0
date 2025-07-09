@@ -3,46 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useThemeContext } from '../contexts/ThemeContext';
 import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Menu,
-  MenuItem,
-  Stack,
-  Toolbar,
-  Typography,
-  useTheme,
-  Avatar,
-  Badge,
-  Chip,
-  Divider,
-  ListItemIcon,
-  ListItemText
+  AppBar, Box, Button, Container, IconButton, Menu, MenuItem, Stack, Toolbar,
+  Typography, useTheme, Avatar, Chip, Divider, ListItemIcon, ListItemText
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  School as CoursesIcon,
-  VideoLibrary as VideosIcon,
-  Article as DocumentsIcon,
-  Quiz as TestsIcon,
-  AddCircle as CreateTestIcon,
-  Edit as EditTestIcon,
-  PlaylistAddCheck as ActiveTestsIcon,
-  FormatListNumbered as TotalTestsIcon,
-  People as UsersIcon,
-  RequestPage as RequestsIcon,
-  Logout as LogoutIcon,
-  Login as LoginIcon,
-  PersonAdd as PersonAddIcon,
-  Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon,
-  AdminPanelSettings as AdminIcon,
-  AccountCircle as UserIcon,
-  Notifications as NotificationsIcon,
-  Settings as SettingsIcon
+  Menu as MenuIcon, Dashboard as DashboardIcon, School as CoursesIcon,
+  VideoLibrary as VideosIcon, Article as DocumentsIcon, Quiz as TestsIcon,
+  People as UsersIcon, RequestPage as RequestsIcon, Logout as LogoutIcon,
+  Login as LoginIcon, PersonAdd as PersonAddIcon, Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon, AdminPanelSettings as AdminIcon,
+  AccountCircle as UserIcon, Settings as SettingsIcon, ArrowRight
 } from '@mui/icons-material';
 
 export default function Navbar() {
@@ -50,41 +20,52 @@ export default function Navbar() {
   const navigate = useNavigate();
   const theme = useTheme();
   const { darkMode, toggleDarkMode } = useThemeContext();
+
+  // Multi-level menu anchors (desktop)
+  const [testsAnchor, setTestsAnchor] = useState(null);
+  const [proAnchor, setProAnchor] = useState(null);
+  const [subjectAnchor, setSubjectAnchor] = useState(null);
+
+  // Mobile menu
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
+
+  // User/admin menus
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
-  const [testsMenuAnchor, setTestsMenuAnchor] = useState(null);
-  const [proTestsMenuAnchor, setProTestsMenuAnchor] = useState(null);
-  const [subjectTestsMenuAnchor, setSubjectTestsMenuAnchor] = useState(null);
 
   const isAdmin = user?.role === 'admin';
 
+  // Desktop: open one submenu at a time!
+  const handleTestsMenuOpen = (e) => {
+    setTestsAnchor(e.currentTarget);
+    setProAnchor(null);
+    setSubjectAnchor(null);
+  };
+  const handleTestsMenuClose = () => {
+    setTestsAnchor(null);
+    setProAnchor(null);
+    setSubjectAnchor(null);
+  };
+  const handleProMenuOpen = (e) => {
+    setProAnchor(e.currentTarget);
+    setSubjectAnchor(null);
+  };
+  const handleProMenuClose = () => {
+    setProAnchor(null);
+    setSubjectAnchor(null);
+  };
+  const handleSubjectMenuOpen = (e) => setSubjectAnchor(e.currentTarget);
+  const handleSubjectMenuClose = () => setSubjectAnchor(null);
 
-  const handleMobileMenuOpen = (event) => setMobileMenuAnchor(event.currentTarget);
+  // Mobile menu handlers
+  const handleMobileMenuOpen = (e) => setMobileMenuAnchor(e.currentTarget);
   const handleMobileMenuClose = () => setMobileMenuAnchor(null);
-  const handleUserMenuOpen = (event) => setUserMenuAnchor(event.currentTarget);
+
+  // User/admin menu handlers
+  const handleUserMenuOpen = (e) => setUserMenuAnchor(e.currentTarget);
   const handleUserMenuClose = () => setUserMenuAnchor(null);
-  const handleAdminMenuOpen = (event) => setAdminMenuAnchor(event.currentTarget);
+  const handleAdminMenuOpen = (e) => setAdminMenuAnchor(e.currentTarget);
   const handleAdminMenuClose = () => setAdminMenuAnchor(null);
-  
-  // Test menu handlers
-  const handleTestsMenuOpen = (event) => setTestsMenuAnchor(event.currentTarget);
-  const handleTestsMenuClose = () => setTestsMenuAnchor(null);
-  const handleProTestsMenuOpen = (event) => {
-    setProTestsMenuAnchor(event.currentTarget);
-  };
-  const handleProTestsMenuClose = () => setProTestsMenuAnchor(null);
-  const handleSubjectTestsMenuOpen = (event) => {
-    setSubjectTestsMenuAnchor(event.currentTarget);
-  };
-  const handleSubjectTestsMenuClose = () => setSubjectTestsMenuAnchor(null);
-  
-  // Close all test menus
-  const closeAllTestMenus = () => {
-    handleTestsMenuClose();
-    handleProTestsMenuClose();
-    handleSubjectTestsMenuClose();
-  };
 
   const handleLogout = async () => {
     try {
@@ -96,61 +77,241 @@ export default function Navbar() {
     }
   };
 
-  // Navigation items for regular users
+  // Navigation items
   const userNavItems = [
-    { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { id: 'courses', text: 'Courses', icon: <CoursesIcon />, path: '/courses' },
-    { id: 'videos', text: 'Videos', icon: <VideosIcon />, path: '/videos' },
-    { id: 'documents', text: 'Documents', icon: <DocumentsIcon />, path: '/documents' },
-    { 
+    { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon fontSize="small"/>, path: '/dashboard' },
+    { id: 'courses', text: 'Courses', icon: <CoursesIcon fontSize="small"/>, path: '/courses' },
+    { id: 'videos', text: 'Videos', icon: <VideosIcon fontSize="small"/>, path: '/videos' },
+    { id: 'documents', text: 'Documents', icon: <DocumentsIcon fontSize="small"/>, path: '/documents' },
+    {
       id: 'tests',
-      text: 'Tests', 
-      icon: <TestsIcon />,
+      text: 'Tests',
+      icon: <TestsIcon fontSize="small"/>,
       subItems: [
-        { id: 'free-tests', text: 'Free Test', path: '/free-tests' },
-        { 
-          id: 'pro-tests', 
-          text: 'Pro', 
+        { id: 'free-tests', text: 'Free Test', icon: <TestsIcon fontSize="small"/>, path: '/free-tests' },
+        {
+          id: 'pro-tests',
+          text: 'Pro',
+          icon: <Chip label="Pro" color="secondary" size="small" sx={{ml:1}} />,
           subItems: [
-            { id: 'pyq-tests', text: 'PYQs', path: '/pyq-tests' },
-            { 
-              id: 'subject-tests', 
+            { id: 'pyq-tests', text: 'PYQs', icon: <TestsIcon fontSize="small"/>, path: '/pyq-tests' },
+            {
+              id: 'subject-tests',
               text: 'Subject-wise',
+              icon: <ArrowRight fontSize="small"/>,
               subItems: [
-                { id: 'nta-tests', text: 'NTA', path: '/nta-tests' },
-                { id: 'ugc-net-tests', text: 'UGC NET', path: '/ugcnet-tests' },
-                { id: 'jrf-tests', text: 'JRF', path: '/jrf-tests' }
+                { id: 'nta-tests', text: 'NTA', icon: <TestsIcon fontSize="small"/>, path: '/nta-tests' },
+                { id: 'ugc-net-tests', text: 'UGC NET', icon: <TestsIcon fontSize="small"/>, path: '/ugcnet-tests' },
+                { id: 'jrf-tests', text: 'JRF', icon: <TestsIcon fontSize="small"/>, path: '/jrf-tests' }
               ]
             }
           ]
         }
       ]
-    },
+    }
   ];
 
-  // Navigation items for admin users
   const adminNavItems = [
-    { id: 'admin-dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-    { id: 'admin-courses', text: 'Courses', icon: <CoursesIcon />, path: '/admin/courses' },
-    { id: 'admin-videos', text: 'Videos', icon: <VideosIcon />, path: '/admin/videos' },
-    { id: 'admin-documents', text: 'Documents', icon: <DocumentsIcon />, path: '/admin/documents' },
-    { 
+    { id: 'admin-dashboard', text: 'Dashboard', icon: <DashboardIcon fontSize="small"/>, path: '/admin/dashboard' },
+    { id: 'admin-courses', text: 'Courses', icon: <CoursesIcon fontSize="small"/>, path: '/admin/courses' },
+    { id: 'admin-videos', text: 'Videos', icon: <VideosIcon fontSize="small"/>, path: '/admin/videos' },
+    { id: 'admin-documents', text: 'Documents', icon: <DocumentsIcon fontSize="small"/>, path: '/admin/documents' },
+    {
       id: 'admin-tests',
-      text: 'Tests', 
-      icon: <TestsIcon />,
+      text: 'Tests',
+      icon: <TestsIcon fontSize="small"/>,
       subItems: [
-        { id: 'all-tests', text: 'All Tests', path: '/admin/tests' },
-        { id: 'create-test', text: 'Create Test', path: '/admin/create-test' },
-        // { id: 'edit-test', text: 'Edit Test', path: '/admin/edit-test' },
-        // { id: 'active-tests', text: 'Active Tests', path: '/admin/active-tests' },
-        // { id: 'total-tests', text: 'Total Tests', path: '/admin/total-tests' },
+        { id: 'all-tests', text: 'All Tests', icon: <TestsIcon fontSize="small"/>, path: '/admin/tests' },
+        { id: 'create-test', text: 'Create Test', icon: <TestsIcon fontSize="small"/>, path: '/admin/create-test' }
       ]
     },
-    { text: 'Users', icon: <UsersIcon />, path: '/admin/total-users' },
-    { text: 'Requests', icon: <RequestsIcon />, path: '/admin/requests' },
+    { text: 'Users', icon: <UsersIcon fontSize="small"/>, path: '/admin/total-users' },
+    { text: 'Requests', icon: <RequestsIcon fontSize="small"/>, path: '/admin/requests' },
   ];
 
   const currentNavItems = isAdmin ? adminNavItems : (user ? userNavItems : []);
+
+  // Render the main "Tests" menu for desktop
+  const renderTestsMenu = (item) => (
+    <>
+      <Button
+        onClick={handleTestsMenuOpen}
+        startIcon={item.icon}
+        aria-controls={Boolean(testsAnchor) ? 'tests-menu' : undefined}
+        aria-haspopup="true"
+        sx={{
+          color: 'inherit',
+          px: 2,
+          fontWeight: 500,
+          textTransform: 'none',
+          '&:hover': { backgroundColor: theme.palette.action.hover }
+        }}
+      >
+        {item.text}
+      </Button>
+      <Menu
+        id="tests-menu"
+        anchorEl={testsAnchor}
+        open={Boolean(testsAnchor)}
+        onClose={handleTestsMenuClose}
+        MenuListProps={{ onMouseLeave: handleTestsMenuClose }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{
+          sx: { minWidth: 210, borderRadius: 2, boxShadow: 3, mt: 1 }
+        }}
+      >
+        {item.subItems.map((subItem) => {
+          if (subItem.id === 'pro-tests') {
+            // Pro with nested
+            return (
+              <MenuItem
+                key={subItem.id}
+                onMouseEnter={handleProMenuOpen}
+                onMouseLeave={handleProMenuClose}
+                aria-haspopup="true"
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1 }}
+              >
+                <ListItemIcon>{subItem.icon}</ListItemIcon>
+                <ListItemText>{subItem.text}</ListItemText>
+                <ArrowRight color="action" fontSize="small"/>
+                {/* Pro submenu */}
+                <Menu
+                  anchorEl={proAnchor}
+                  open={Boolean(proAnchor)}
+                  onClose={handleProMenuClose}
+                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  MenuListProps={{ onMouseLeave: handleProMenuClose }}
+                  PaperProps={{
+                    sx: { minWidth: 200, borderRadius: 2, boxShadow: 3 }
+                  }}
+                >
+                  {subItem.subItems.map((proSubItem) => {
+                    if (proSubItem.id === 'subject-tests') {
+                      // Subject-wise with nested
+                      return (
+                        <MenuItem
+                          key={proSubItem.id}
+                          onMouseEnter={handleSubjectMenuOpen}
+                          onMouseLeave={handleSubjectMenuClose}
+                          aria-haspopup="true"
+                          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1 }}
+                        >
+                          <ListItemIcon>{proSubItem.icon}</ListItemIcon>
+                          <ListItemText>{proSubItem.text}</ListItemText>
+                          <ArrowRight color="action" fontSize="small"/>
+                          {/* Subject-wise submenu */}
+                          <Menu
+                            anchorEl={subjectAnchor}
+                            open={Boolean(subjectAnchor)}
+                            onClose={handleSubjectMenuClose}
+                            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                            MenuListProps={{ onMouseLeave: handleSubjectMenuClose }}
+                            PaperProps={{
+                              sx: { minWidth: 170, borderRadius: 2, boxShadow: 3 }
+                            }}
+                          >
+                            {proSubItem.subItems.map((subjectItem) => (
+                              <MenuItem
+                                key={subjectItem.id}
+                                component={Link}
+                                to={subjectItem.path}
+                                onClick={() => {
+                                  handleTestsMenuClose();
+                                  navigate(subjectItem.path);
+                                }}
+                              >
+                                <ListItemIcon>{subjectItem.icon}</ListItemIcon>
+                                <ListItemText>{subjectItem.text}</ListItemText>
+                              </MenuItem>
+                            ))}
+                          </Menu>
+                        </MenuItem>
+                      );
+                    } else {
+                      // PYQs leaf
+                      return (
+                        <MenuItem
+                          key={proSubItem.id}
+                          component={Link}
+                          to={proSubItem.path}
+                          onClick={() => {
+                            handleTestsMenuClose();
+                            navigate(proSubItem.path);
+                          }}
+                        >
+                          <ListItemIcon>{proSubItem.icon}</ListItemIcon>
+                          <ListItemText>{proSubItem.text}</ListItemText>
+                        </MenuItem>
+                      );
+                    }
+                  })}
+                </Menu>
+              </MenuItem>
+            );
+          } else {
+            // Free Test leaf
+            return (
+              <MenuItem
+                key={subItem.id}
+                component={Link}
+                to={subItem.path}
+                onClick={() => {
+                  handleTestsMenuClose();
+                  navigate(subItem.path);
+                }}
+              >
+                <ListItemIcon>{subItem.icon}</ListItemIcon>
+                <ListItemText>{subItem.text}</ListItemText>
+              </MenuItem>
+            );
+          }
+        })}
+      </Menu>
+    </>
+  );
+
+  // Admin menu with subItems
+  const renderAdminMenu = (item) => (
+    <>
+      <Button
+        onClick={handleAdminMenuOpen}
+        startIcon={item.icon}
+        sx={{
+          color: 'inherit',
+          px: 2,
+          fontWeight: 500,
+          textTransform: 'none',
+          '&:hover': { backgroundColor: theme.palette.action.hover }
+        }}
+      >
+        {item.text}
+      </Button>
+      <Menu
+        anchorEl={adminMenuAnchor}
+        open={Boolean(adminMenuAnchor)}
+        onClose={handleAdminMenuClose}
+        PaperProps={{ sx: { minWidth: 210, borderRadius: 2, boxShadow: 3, mt: 1 } }}
+      >
+        {item.subItems.map((subItem) => (
+          <MenuItem
+            key={subItem.id || subItem.path}
+            component={Link}
+            to={subItem.path}
+            onClick={() => {
+              handleAdminMenuClose();
+              navigate(subItem.path);
+            }}
+          >
+            <ListItemIcon>{subItem.icon}</ListItemIcon>
+            <ListItemText>{subItem.text}</ListItemText>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
 
   return (
     <AppBar position="sticky" elevation={1} color="default">
@@ -186,10 +347,10 @@ export default function Navbar() {
             >
               Aapki Academy
               {isAdmin && (
-                <Chip 
-                  label="Admin" 
-                  size="small" 
-                  color="secondary" 
+                <Chip
+                  label="Admin"
+                  size="small"
+                  color="secondary"
                   icon={<AdminIcon fontSize="small" />}
                   sx={{ ml: 1, verticalAlign: 'middle' }}
                 />
@@ -204,176 +365,11 @@ export default function Navbar() {
             sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}
           >
             {currentNavItems.map((item) => {
-              // Handle Tests menu with nested structure
               if (item.id === 'tests' && item.subItems) {
-                return (
-                  <Box key={item.id}>
-                    <Button
-                      onClick={handleTestsMenuOpen}
-                      startIcon={item.icon}
-                      sx={{
-                        color: 'inherit',
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                        },
-                      }}
-                    >
-                      {item.text}
-                    </Button>
-                    
-                    {/* First level menu: Free Test and Pro */}
-                    <Menu
-                      anchorEl={testsMenuAnchor}
-                      open={Boolean(testsMenuAnchor)}
-                      onClose={handleTestsMenuClose}
-                    >
-                      {item.subItems.map((subItem) => {
-                        if (subItem.id === 'pro-tests' && subItem.subItems) {
-                          // Pro tests with nested options
-                          return (
-                            <MenuItem
-                              key={subItem.id}
-                              onClick={handleProTestsMenuOpen}
-                              sx={{ position: 'relative' }}
-                            >
-                              <ListItemText>{subItem.text}</ListItemText>
-                              
-                              {/* Second level menu: MCQs, PYQs, Subject-wise */}
-                              <Menu
-                                anchorEl={proTestsMenuAnchor}
-                                open={Boolean(proTestsMenuAnchor)}
-                                onClose={handleProTestsMenuClose}
-                                anchorOrigin={{
-                                  vertical: 'top',
-                                  horizontal: 'right',
-                                }}
-                                transformOrigin={{
-                                  vertical: 'top',
-                                  horizontal: 'left',
-                                }}
-                              >
-                                {subItem.subItems.map((proSubItem) => {
-                                  if (proSubItem.id === 'subject-tests' && proSubItem.subItems) {
-                                    // Subject-wise with nested options
-                                    return (
-                                      <MenuItem
-                                        key={proSubItem.id}
-                                        onClick={handleSubjectTestsMenuOpen}
-                                        sx={{ position: 'relative' }}
-                                      >
-                                        <ListItemText>{proSubItem.text}</ListItemText>
-                                        
-                                        {/* Third level menu: NTA, UGC NET, JRF */}
-                                        <Menu
-                                          anchorEl={subjectTestsMenuAnchor}
-                                          open={Boolean(subjectTestsMenuAnchor)}
-                                          onClose={handleSubjectTestsMenuClose}
-                                          anchorOrigin={{
-                                            vertical: 'top',
-                                            horizontal: 'right',
-                                          }}
-                                          transformOrigin={{
-                                            vertical: 'top',
-                                            horizontal: 'left',
-                                          }}
-                                        >
-                                          {proSubItem.subItems.map((subjectItem) => (
-                                            <MenuItem
-                                              key={subjectItem.id}
-                                              component={Link}
-                                              to={subjectItem.path}
-                                              onClick={() => {
-                                                closeAllTestMenus();
-                                                navigate(subjectItem.path);
-                                              }}
-                                            >
-                                              <ListItemText>{subjectItem.text}</ListItemText>
-                                            </MenuItem>
-                                          ))}
-                                        </Menu>
-                                      </MenuItem>
-                                    );
-                                  } else {
-                                    // Regular MCQs and PYQs items
-                                    return (
-                                      <MenuItem
-                                        key={proSubItem.id}
-                                        component={Link}
-                                        to={proSubItem.path}
-                                        onClick={() => {
-                                          closeAllTestMenus();
-                                          navigate(proSubItem.path);
-                                        }}
-                                      >
-                                        <ListItemText>{proSubItem.text}</ListItemText>
-                                      </MenuItem>
-                                    );
-                                  }
-                                })}
-                              </Menu>
-                            </MenuItem>
-                          );
-                        } else {
-                          // Free Test item
-                          return (
-                            <MenuItem
-                              key={subItem.id}
-                              component={Link}
-                              to={subItem.path}
-                              onClick={() => {
-                                closeAllTestMenus();
-                                navigate(subItem.path);
-                              }}
-                            >
-                              <ListItemText>{subItem.text}</ListItemText>
-                            </MenuItem>
-                          );
-                        }
-                      })}
-                    </Menu>
-                  </Box>
-                );
-              }
-              // Handle Admin menu with subItems
-              else if (item.subItems) {
-                return (
-                  <Box key={item.id}>
-                    <Button
-                      onClick={handleAdminMenuOpen}
-                      startIcon={item.icon}
-                      sx={{
-                        color: 'inherit',
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                        },
-                      }}
-                    >
-                      {item.text}
-                    </Button>
-                    <Menu
-                      anchorEl={adminMenuAnchor}
-                      open={Boolean(adminMenuAnchor)}
-                      onClose={handleAdminMenuClose}
-                    >
-                      {item.subItems.map((subItem) => (
-                        <MenuItem
-                          key={subItem.id || subItem.path}
-                          component={Link}
-                          to={subItem.path}
-                          onClick={() => {
-                            handleAdminMenuClose();
-                            navigate(subItem.path);
-                          }}
-                        >
-                          <ListItemText>{subItem.text}</ListItemText>
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </Box>
-                );
-              } 
-              // Regular menu items
-              else {
+                return <Box key={item.id}>{renderTestsMenu(item)}</Box>;
+              } else if (item.subItems) {
+                return <Box key={item.id}>{renderAdminMenu(item)}</Box>;
+              } else {
                 return (
                   <Button
                     key={item.id}
@@ -382,9 +378,10 @@ export default function Navbar() {
                     startIcon={item.icon}
                     sx={{
                       color: 'inherit',
-                      '&:hover': {
-                        backgroundColor: theme.palette.action.hover,
-                      },
+                      px: 2,
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      '&:hover': { backgroundColor: theme.palette.action.hover }
                     }}
                   >
                     {item.text}
@@ -418,8 +415,6 @@ export default function Navbar() {
                     {user.displayName?.[0]}
                   </Avatar>
                 </IconButton>
-
-                {/* User Menu Dropdown */}
                 <Menu
                   anchorEl={userMenuAnchor}
                   open={Boolean(userMenuAnchor)}
@@ -469,9 +464,7 @@ export default function Navbar() {
                   component={Link}
                   to="/login"
                   startIcon={<LoginIcon />}
-                  sx={{
-                    color: 'inherit',
-                  }}
+                  sx={{ color: 'inherit' }}
                 >
                   Login
                 </Button>
@@ -481,9 +474,7 @@ export default function Navbar() {
                   startIcon={<PersonAddIcon />}
                   variant="contained"
                   color="primary"
-                  sx={{
-                    ml: 1,
-                  }}
+                  sx={{ ml: 1 }}
                 >
                   Sign Up
                 </Button>
@@ -491,192 +482,145 @@ export default function Navbar() {
             )}
           </Stack>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu (uses indentation for nesting) */}
           <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
-            {/* Dark Mode Toggle */}
-            <IconButton
-              onClick={toggleDarkMode}
-              color="inherit"
-              sx={{ mr: 1 }}
-            >
+            <IconButton onClick={toggleDarkMode} color="inherit" sx={{ mr: 1 }}>
               {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
-
-            {/* Mobile Menu Button */}
-            <IconButton
-              color="inherit"
-              onClick={handleMobileMenuOpen}
-            >
+            <IconButton color="inherit" onClick={handleMobileMenuOpen}>
               <MenuIcon />
             </IconButton>
-
-            {/* Mobile Menu Dropdown */}
             <Menu
               anchorEl={mobileMenuAnchor}
               open={Boolean(mobileMenuAnchor)}
               onClose={handleMobileMenuClose}
-              sx={{
-                display: { xs: 'block', md: 'none' },
+              sx={{ display: { xs: 'block', md: 'none' } }}
+              PaperProps={{
+                sx: { minWidth: 220, borderRadius: 2, boxShadow: 3 }
               }}
             >
               {currentNavItems.map((item) => {
-                // Handle Tests menu with nested structure
                 if (item.id === 'tests' && item.subItems) {
                   return (
-                    <div key={item.id}>
-                      <MenuItem onClick={handleTestsMenuOpen}>
+                    <Box key={item.id}>
+                      <MenuItem disabled>
                         <ListItemIcon>{item.icon}</ListItemIcon>
                         <ListItemText>{item.text}</ListItemText>
                       </MenuItem>
-                      
-                      {/* First level menu: Free Test and Pro */}
-                      <Menu
-                        anchorEl={testsMenuAnchor}
-                        open={Boolean(testsMenuAnchor)}
-                        onClose={handleTestsMenuClose}
-                      >
-                        {item.subItems.map((subItem) => {
-                          if (subItem.id === 'pro-tests' && subItem.subItems) {
-                            // Pro tests with nested options
-                            return (
-                              <MenuItem
-                                key={subItem.id}
-                                onClick={handleProTestsMenuOpen}
-                              >
+                      {item.subItems.map((subItem) => {
+                        if (subItem.id === 'pro-tests' && subItem.subItems) {
+                          return (
+                            <React.Fragment key={subItem.id}>
+                              <MenuItem disabled sx={{ pl: 4 }}>
                                 <ListItemText inset>{subItem.text}</ListItemText>
-                                
-                                {/* Second level menu: MCQs, PYQs, Subject-wise */}
-                                <Menu
-                                  anchorEl={proTestsMenuAnchor}
-                                  open={Boolean(proTestsMenuAnchor)}
-                                  onClose={handleProTestsMenuClose}
-                                >
-                                  {subItem.subItems.map((proSubItem) => {
-                                    if (proSubItem.id === 'subject-tests' && proSubItem.subItems) {
-                                      // Subject-wise with nested options
-                                      return (
+                              </MenuItem>
+                              {subItem.subItems.map((proSubItem) => {
+                                if (proSubItem.id === 'subject-tests' && proSubItem.subItems) {
+                                  return (
+                                    <React.Fragment key={proSubItem.id}>
+                                      <MenuItem disabled sx={{ pl: 6 }}>
+                                        <ListItemText inset>{proSubItem.text}</ListItemText>
+                                      </MenuItem>
+                                      {proSubItem.subItems.map((subjectItem) => (
                                         <MenuItem
-                                          key={proSubItem.id}
-                                          onClick={handleSubjectTestsMenuOpen}
-                                        >
-                                          <ListItemText inset>{proSubItem.text}</ListItemText>
-                                          
-                                          {/* Third level menu: NTA, UGC NET, JRF */}
-                                          <Menu
-                                            anchorEl={subjectTestsMenuAnchor}
-                                            open={Boolean(subjectTestsMenuAnchor)}
-                                            onClose={handleSubjectTestsMenuClose}
-                                          >
-                                            {proSubItem.subItems.map((subjectItem) => (
-                                              <MenuItem
-                                                key={subjectItem.id}
-                                                component={Link}
-                                                to={subjectItem.path}
-                                                onClick={() => {
-                                                  handleMobileMenuClose();
-                                                  closeAllTestMenus();
-                                                  navigate(subjectItem.path);
-                                                }}
-                                              >
-                                                <ListItemText inset>{subjectItem.text}</ListItemText>
-                                              </MenuItem>
-                                            ))}
-                                          </Menu>
-                                        </MenuItem>
-                                      );
-                                    } else {
-                                      // Regular MCQs and PYQs items
-                                      return (
-                                        <MenuItem
-                                          key={proSubItem.id}
+                                          key={subjectItem.id}
                                           component={Link}
-                                          to={proSubItem.path}
+                                          to={subjectItem.path}
+                                          sx={{ pl: 8 }}
                                           onClick={() => {
                                             handleMobileMenuClose();
-                                            closeAllTestMenus();
-                                            navigate(proSubItem.path);
+                                            navigate(subjectItem.path);
                                           }}
                                         >
-                                          <ListItemText inset>{proSubItem.text}</ListItemText>
+                                          <ListItemIcon>{subjectItem.icon}</ListItemIcon>
+                                          <ListItemText inset>{subjectItem.text}</ListItemText>
                                         </MenuItem>
-                                      );
-                                    }
-                                  })}
-                                </Menu>
-                              </MenuItem>
-                            );
-                          } else {
-                            // Free Test item
-                            return (
-                              <MenuItem
-                                key={subItem.id}
-                                component={Link}
-                                to={subItem.path}
-                                onClick={() => {
-                                  handleMobileMenuClose();
-                                  closeAllTestMenus();
-                                  navigate(subItem.path);
-                                }}
-                              >
-                                <ListItemText inset>{subItem.text}</ListItemText>
-                              </MenuItem>
-                            );
-                          }
-                        })}
-                      </Menu>
-                    </div>
-                  );
-                }
-                // Handle Admin menu with subItems
-                else if (item.subItems) {
-                  return (
-                    <div key={item.id}>
-                      <MenuItem onClick={handleAdminMenuOpen}>
-                        <ListItemIcon>{item.icon}</ListItemIcon>
-                        <ListItemText>{item.text}</ListItemText>
-                      </MenuItem>
-                      <Menu
-                        anchorEl={adminMenuAnchor}
-                        open={Boolean(adminMenuAnchor)}
-                        onClose={handleAdminMenuClose}
-                      >
-                        {item.subItems.map((subItem) => (
+                                      ))}
+                                    </React.Fragment>
+                                  );
+                                }
+                                // PYQs
+                                return (
+                                  <MenuItem
+                                    key={proSubItem.id}
+                                    component={Link}
+                                    to={proSubItem.path}
+                                    sx={{ pl: 6 }}
+                                    onClick={() => {
+                                      handleMobileMenuClose();
+                                      navigate(proSubItem.path);
+                                    }}
+                                  >
+                                    <ListItemIcon>{proSubItem.icon}</ListItemIcon>
+                                    <ListItemText inset>{proSubItem.text}</ListItemText>
+                                  </MenuItem>
+                                );
+                              })}
+                            </React.Fragment>
+                          );
+                        }
+                        // Free Test
+                        return (
                           <MenuItem
-                            key={subItem.id || subItem.path}
+                            key={subItem.id}
                             component={Link}
                             to={subItem.path}
+                            sx={{ pl: 4 }}
                             onClick={() => {
                               handleMobileMenuClose();
-                              handleAdminMenuClose();
                               navigate(subItem.path);
                             }}
                           >
+                            <ListItemIcon>{subItem.icon}</ListItemIcon>
                             <ListItemText inset>{subItem.text}</ListItemText>
                           </MenuItem>
-                        ))}
-                      </Menu>
-                    </div>
-                  );
-                } 
-                // Regular menu items
-                else {
-                  return (
-                    <MenuItem
-                      key={item.id}
-                      component={Link}
-                      to={item.path}
-                      onClick={() => {
-                        handleMobileMenuClose();
-                        navigate(item.path);
-                      }}
-                    >
-                      <ListItemIcon>{item.icon}</ListItemIcon>
-                      <ListItemText>{item.text}</ListItemText>
-                    </MenuItem>
+                        );
+                      })}
+                    </Box>
                   );
                 }
+                // Other admin submenus
+                else if (item.subItems) {
+                  return (
+                    <Box key={item.id}>
+                      <MenuItem disabled>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText>{item.text}</ListItemText>
+                      </MenuItem>
+                      {item.subItems.map((subItem) => (
+                        <MenuItem
+                          key={subItem.id || subItem.path}
+                          component={Link}
+                          to={subItem.path}
+                          sx={{ pl: 4 }}
+                          onClick={() => {
+                            handleMobileMenuClose();
+                            navigate(subItem.path);
+                          }}
+                        >
+                          <ListItemIcon>{subItem.icon}</ListItemIcon>
+                          <ListItemText inset>{subItem.text}</ListItemText>
+                        </MenuItem>
+                      ))}
+                    </Box>
+                  );
+                }
+                // Leaf
+                return (
+                  <MenuItem
+                    key={item.id}
+                    component={Link}
+                    to={item.path}
+                    onClick={() => {
+                      handleMobileMenuClose();
+                      navigate(item.path);
+                    }}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText>{item.text}</ListItemText>
+                  </MenuItem>
+                );
               })}
-
               {user ? (
                 <Box>
                   <MenuItem
