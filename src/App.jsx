@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 
+
 // Lazy loaded pages
 const Home = React.lazy(() => import('./pages/Home'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -21,10 +22,17 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Courses = React.lazy(() => import('./pages/Courses'));
 const Documents = React.lazy(() => import('./pages/Documents'));
 const Videos = React.lazy(() => import('./pages/Videos'));
-const PYQTests = React.lazy(() => import('./pages/PYQTests'));
-const TestPage = React.lazy(() => import('./pages/TestPage'));
-const TestResult = React.lazy(() => import('./pages/TestResult'));
+const PYQTests = React.lazy(() => import('./pages/pyq/PYQTests'));
+const TestPage = React.lazy(() => import('./pages/pyq/TestPage'));
+const TestResult = React.lazy(() => import('./pages/pyq/TestResult'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
+const FreeTests = React.lazy(() => import('./pages/FreeTests'));
+const MCQTests = React.lazy(() => import('./pages/MCQTests'));
+const NTATests = React.lazy(() => import('./pages/SubjectsWiseTest/NTATests'));
+const UGCNETTests = React.lazy(() => import('./pages/SubjectsWiseTest/UGCNETTests'));
+const JRFTests = React.lazy(() => import('./pages/SubjectsWiseTest/JRFTests'));
+
+
 
 // Admin pages
 const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
@@ -73,6 +81,11 @@ function AppContent() {
               <Route path="/pyq-tests" element={<PrivateRoute><PYQTests /></PrivateRoute>} />
               <Route path="/pyq-tests/:testId" element={<PrivateRoute><TestPage /></PrivateRoute>} />
               <Route path="/test-result/:attemptId" element={<PrivateRoute><TestResult /></PrivateRoute>} />
+              <Route path="/free-tests" element={<PrivateRoute><FreeTests /></PrivateRoute>} />
+              <Route path="/mcq-tests" element={<PrivateRoute><MCQTests /></PrivateRoute>} />
+              <Route path="/nta-tests" element={<PrivateRoute><NTATests /></PrivateRoute>} />
+              <Route path="/ugcnet-tests" element={<PrivateRoute><UGCNETTests /></PrivateRoute>} />
+              <Route path="/jrf-tests" element={<PrivateRoute><JRFTests /></PrivateRoute>} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />

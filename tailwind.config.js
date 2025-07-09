@@ -3,6 +3,20 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+        animation: {
+      fadeIn: 'fadeIn 0.3s ease-in-out forwards',
+      fadeInDown: 'fadeInDown 0.3s ease-in-out forwards',
+    },
+    keyframes: {
+      fadeIn: {
+        '0%': { opacity: 0 },
+        '100%': { opacity: 1 },
+      },
+      fadeInDown: {
+        '0%': { opacity: 0, transform: 'translateY(-10px)' },
+        '100%': { opacity: 1, transform: 'translateY(0)' },
+      },
+    },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },
@@ -52,3 +66,6 @@ module.exports = {
     },
   },
 };
+
+
+

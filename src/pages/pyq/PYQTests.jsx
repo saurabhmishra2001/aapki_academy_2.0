@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../utils/firebaseConfig';
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Box,
   Card,
@@ -13,7 +11,7 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import { testService } from "../services/testService";
+import { testService } from "../../services/testService";
 
 export default function PYQTests() {
   const [tests, setTests] = useState([]);
@@ -29,13 +27,12 @@ export default function PYQTests() {
   const fetchTests = async () => {
     setLoading(true);
     try {
-      // Fetch tests where type is 'pyq' using testService
-      const allTests = await testService.getTests();
-      const pyqTests = allTests.filter(test => test.type === "pyq");
+      // ✅ Fetch tests where model is 'PYQ'
+      const pyqTests = await testService.getPyqTests();
       setTests(pyqTests);
       setError(null);
     } catch (err) {
-      console.error('Error fetching tests:', err);
+      console.error('Error fetching PYQ tests:', err);
       setError('Failed to load tests');
     } finally {
       setLoading(false);
@@ -98,7 +95,7 @@ export default function PYQTests() {
         {tests.length === 0 && (
           <Grid item xs={12}>
             <Typography variant="body1" align="center">
-              No tests available at the moment.
+              No PYQ tests available at the moment.
             </Typography>
           </Grid>
         )}

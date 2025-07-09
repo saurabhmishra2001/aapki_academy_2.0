@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import UserDetailsForm from '../components/UserDetailsForm';
 import ActivityHistory from '../components/dashboard/ActivityHistory';
-import TestTabs from '../components/test/TestTabs';
+import TestTabs from './test/TestTabs';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard() {

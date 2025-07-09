@@ -48,6 +48,8 @@ export const testService = {
     }
   },
 
+  
+
   // ✅ Get all tests
   getTests: async () => {
     try {
@@ -234,5 +236,107 @@ export const testService = {
       console.error('Error deleting question:', error);
       throw error;
     }
+  },
+
+  // ✅ Get all free tests
+getFreeTests: async () => {
+
+  try {
+    const q = query(
+      collection(db, 'tests'),
+      where('isPaid', '==', false ||'type'=='free' && 'subject'=='NTA'),
+      where('status', 'in', ['published', 'upcoming']),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    const tests = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    console.log('🚀 ~ file: testService.js:160 ~ getFreeTests ~ tests:', tests)
+    return tests;
+  } catch (error) {
+    console.error('Error fetching free tests:', error);
+    throw error;
   }
+},
+// ✅ Get all unique subjects from paid tests
+getPaidTestSubjects: async () => {
+  try {
+    const q = query(
+      collection(db, 'tests'),
+      where('isPaid', '==', true || 'type'=='paid'),
+      where('status', 'in', ['published', 'upcoming'])
+    );
+    const querySnapshot = await getDocs(q);
+
+    const subjectsSet = new Set();
+    querySnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.subject) {
+        subjectsSet.add(data.subject);
+      }
+    });
+
+    return Array.from(subjectsSet);
+  } catch (error) {
+    console.error('Error fetching paid test subjects:', error);
+    throw error;
+  }
+},
+// ✅ Get paid tests (optionally by subject or type)
+getPaidTests: async ({ subject = null } = {}) => {
+  try {
+    let q = query(
+      collection(db, 'tests'),
+      where('isPaid', '==', true ||'type'=='paid' ),
+      where('status', 'in', ['published', 'upcoming']),
+      orderBy('createdAt', 'desc')
+    );
+        console.log('🚀 ~ file: testService.js:160 ~ getFreeTests ~ tests:', tests)
+
+    const querySnapshot = await getDocs(q);
+    let tests = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    if (subject) {
+      tests = tests.filter(t => t.subject === subject);
+    }
+
+    return tests;
+  } catch (error) {
+    console.error('Error fetching paid tests:', error);
+    throw error;
+  }
+},
+
+// ✅ Get PYQ tests with optional subject filter
+getPyqTests: async () => {
+  try {
+    const q = query(
+      collection(db, 'tests'),
+      where('model', '==', 'PYQ'),
+      where('status', 'in', ['published', 'upcoming'])
+    );
+
+    const querySnapshot = await getDocs(q);
+    const tests = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return tests;
+  } catch (error) {
+    console.error('Error fetching PYQ tests:', error);
+    throw error;
+  }
+},
+
+
+
+
+
+
 };

@@ -11,9 +11,14 @@ import UserDashboard from '../pages/user/Dashboard';
 import Courses from '../pages/Courses';
 import Videos from '../pages/Videos';
 import Documents from '../pages/Documents';
-import TestPage from '../pages/TestPage';
-import TestResult from '../pages/TestResult';
-import PYQTests from '../pages/PYQTests';
+import TestPage from '../pages/pyq/TestPage';
+import TestResult from '../pages/pyq/TestResult';
+import PYQTests from '../pages/pyq/PYQTests';
+import FreeTests from '../pages/FreeTests';
+import MCQTests from '../pages/MCQTests';
+import NTATests from '../pages/SubjectsWiseTest/NTATests';
+import UGCNETTests from '../pages/SubjectsWiseTest/UGCNETTests';
+import JRFTests from '../pages/SubjectsWiseTest/JRFTests';
 
 // Admin Pages
 import AdminLogin from '../pages/admin/AdminLogin';
@@ -74,6 +79,26 @@ export const router = createBrowserRouter([
   {
     path: '/pyq-tests',
     element: <PrivateRoute><PYQTests /></PrivateRoute>
+  },
+  {
+    path: '/free-tests',
+    element: <PrivateRoute><FreeTests /></PrivateRoute>
+  },
+  {
+    path: '/mcq-tests',
+    element: <PrivateRoute><MCQTests /></PrivateRoute>
+  },
+  {
+    path: '/nta-tests',
+    element: <PrivateRoute><NTATests /></PrivateRoute>
+  },
+  {
+    path: '/ugc-net-tests',
+    element: <PrivateRoute><UGCNETTests /></PrivateRoute>
+  },
+  {
+    path: '/jrf-tests',
+    element: <PrivateRoute><JRFTests /></PrivateRoute>
   },
 
   // Protected Admin Routes
