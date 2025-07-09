@@ -1,9 +1,21 @@
-import { collection, getDocs, query, where, orderBy, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  serverTimestamp
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { auth } from '../config/firebase';
 
 export const testService = {
-  // Test CRUD Operations
+  // ✅ Create a test
   createTest: async (testData) => {
     try {
       const user = auth.currentUser;
@@ -35,6 +47,8 @@ export const testService = {
       throw error;
     }
   },
+
+  // ✅ Get all tests
   getTests: async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'tests'));
@@ -49,18 +63,28 @@ export const testService = {
     }
   },
 
-  getAvailableTests: async () => {
+  // ✅ Get available (active/upcoming) tests
+  getAvailableTests: async ({ isPaid = null, subject = null } = {}) => {
     try {
-      const testsQuery = query(
+      let q = query(
         collection(db, 'tests'),
         where('status', 'in', ['active', 'upcoming']),
         orderBy('createdAt', 'desc')
       );
-      const querySnapshot = await getDocs(testsQuery);
-      const tests = querySnapshot.docs.map(doc => ({
+
+      const querySnapshot = await getDocs(q);
+      let tests = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      if (isPaid !== null) {
+        tests = tests.filter(t => t.isPaid === isPaid);
+      }
+      if (subject) {
+        tests = tests.filter(t => t.subject === subject);
+      }
+
       return tests;
     } catch (error) {
       console.error('Error fetching available tests:', error);
@@ -68,27 +92,48 @@ export const testService = {
     }
   },
 
+  // ✅ Get test by ID (Supports both question locations)
   getTestById: async (testId) => {
     try {
-      const testsQuery = query(
-        collection(db, 'tests'),
-        where('id', '==', testId)
-      );
-      const querySnapshot = await getDocs(testsQuery);
-      if (querySnapshot.empty) {
+      if (!testId) throw new Error('Invalid test ID');
+
+      const testRef = doc(db, 'tests', testId);
+      const testSnap = await getDoc(testRef);
+
+      if (!testSnap.exists()) {
         throw new Error('Test not found');
       }
-      const test = {
-        id: querySnapshot.docs[0].id,
-        ...querySnapshot.docs[0].data()
+
+      const testData = testSnap.data();
+
+      // Try global questions collection
+      const questionsQuery = query(
+        collection(db, 'questions'),
+        where('testId', '==', testId),
+        orderBy('createdAt', 'asc')
+      );
+      const questionsSnap = await getDocs(questionsQuery);
+      let questions = questionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // If no global questions found, try subcollection
+      if (questions.length === 0) {
+        const subRef = collection(db, 'tests', testId, 'questions');
+        const subSnap = await getDocs(subRef);
+        questions = subSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+
+      return {
+        id: testSnap.id,
+        ...testData,
+        questions,
       };
-      return test;
     } catch (error) {
       console.error('Error fetching test by ID:', error);
       throw error;
     }
   },
 
+  // ✅ Update test
   updateTest: async (testId, testData) => {
     try {
       const testRef = doc(db, 'tests', testId);
@@ -104,15 +149,22 @@ export const testService = {
     }
   },
 
+  // ✅ Delete test and its questions
   deleteTest: async (testId) => {
     try {
-      // Delete associated questions first
+      // Delete from global 'questions' collection
       const questionsQuery = query(collection(db, 'questions'), where('testId', '==', testId));
       const questionsSnapshot = await getDocs(questionsQuery);
       const deleteQuestionPromises = questionsSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deleteQuestionPromises);
 
-      // Delete the test
+      // Optionally, also delete from subcollection if any
+      const subcollectionRef = collection(db, 'tests', testId, 'questions');
+      const subSnap = await getDocs(subcollectionRef);
+      const subDeletePromises = subSnap.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(subDeletePromises);
+
+      // Delete test document
       await deleteDoc(doc(db, 'tests', testId));
       return true;
     } catch (error) {
@@ -121,7 +173,7 @@ export const testService = {
     }
   },
 
-  // Question CRUD Operations
+  // ✅ Create question (global collection)
   createQuestion: async (testId, questionData) => {
     try {
       const questionRef = await addDoc(collection(db, 'questions'), {
@@ -137,6 +189,7 @@ export const testService = {
     }
   },
 
+  // ✅ Get questions by test ID (global only)
   getQuestions: async (testId) => {
     try {
       const questionsQuery = query(
@@ -156,6 +209,7 @@ export const testService = {
     }
   },
 
+  // ✅ Update question
   updateQuestion: async (questionId, questionData) => {
     try {
       const questionRef = doc(db, 'questions', questionId);
@@ -171,6 +225,7 @@ export const testService = {
     }
   },
 
+  // ✅ Delete a question
   deleteQuestion: async (questionId) => {
     try {
       await deleteDoc(doc(db, 'questions', questionId));

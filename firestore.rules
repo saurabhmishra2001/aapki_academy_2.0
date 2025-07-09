@@ -1,62 +1,139 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
+
+    // 🔐 Authentication Helpers
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
       return isSignedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
+
     function isValidUser() {
-      return request.resource.data.keys().hasAll(['email', 'name']) &&
+      return request.resource.data.keys().hasAll(['email', 'role']) &&
              request.resource.data.email is string &&
-             request.resource.data.name is string;
+             request.resource.data.role is string;
     }
-    
-    // Users collection
+
+    function isValidCourse() {
+      return request.resource.data.keys().hasAll(['title', 'description', 'createdAt']) &&
+             request.resource.data.title is string &&
+             request.resource.data.description is string;
+    }
+
+    // ✅ Global fallback - Admins have full access
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ✅ Admin verification endpoint
+    match /admin/verify/{userId} {
+      allow get: if isAdmin();
+    }
+
+    // ✅ Users Collection
     match /users/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow create: if isSignedIn() && isValidUser();
-      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow create: if isOwner(userId) && isValidUser();
+      allow update: if isAdmin() || (isOwner(userId) && isValidUser());
       allow delete: if isAdmin();
+
+      // Private Subcollection
+      match /private/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Progress Subcollection
+      match /progress/{document=**} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId);
+      }
     }
-    
-    // Courses collection
+
+    // ✅ Admin Collection
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ✅ Courses Collection
     match /courses/{courseId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow create, update: if isAdmin() && isValidCourse();
+      allow delete: if isAdmin();
+
+      match /content/{contentId} {
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
+      }
+
+      match /enrollments/{userId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isAdmin();
+      }
     }
-    
-    // Documents collection
+
+    // ✅ Documents Collection
     match /documents/{documentId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
-    
-    // Tests collection
+
+    // ✅ Tests Collection
     match /tests/{testId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
-      
-      // Questions subcollection
+      allow create, update, delete: if isAdmin();
+
       match /questions/{questionId} {
         allow read: if isSignedIn();
         allow write: if isAdmin();
       }
+
+      match /responses/{userId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId);
+        allow delete: if isAdmin();
+      }
     }
-    
-    // Video rules
+
+    // ✅ Videos Collection
     match /videos/{videoId} {
       allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+
+      match /progress/{userId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ✅ Announcements Collection
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
+    }
+
+    // ✅ Feedback Collection
+    match /feedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ✅ System Settings Collection
+    match /system/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ✅ Analytics
+    match /analytics/{document} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
     }
   }
 }
