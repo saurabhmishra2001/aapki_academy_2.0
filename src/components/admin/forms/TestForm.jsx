@@ -18,7 +18,9 @@ const TestForm = ({ onTestCreated }) => {
     questions: [],
     type: "free",
     subject: "NTA",
+    model: "", // Optional model field
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formErrors, setFormErrors] = useState({});
@@ -138,22 +140,12 @@ const TestForm = ({ onTestCreated }) => {
 
       <Tabs defaultValue="details" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg shadow-sm mb-6">
-          <TabsTrigger
-            value="details"
-            className="py-2 px-4 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-gray-700 data-[state=active]:font-semibold"
-          >
-            Test Details
-          </TabsTrigger>
-          <TabsTrigger
-            value="questions"
-            className="py-2 px-4 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-gray-700 data-[state=active]:font-semibold"
-          >
-            Questions ({test.questions.length})
-          </TabsTrigger>
+          <TabsTrigger value="details">Test Details</TabsTrigger>
+          <TabsTrigger value="questions">Questions ({test.questions.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="details" className="mt-0">
-          <Card className="p-6 space-y-6 bg-white shadow-md rounded-xl border border-gray-200">
+        <TabsContent value="details">
+          <Card className="p-6 space-y-6 bg-white border border-gray-200">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
@@ -161,8 +153,6 @@ const TestForm = ({ onTestCreated }) => {
                   id="title"
                   value={test.title}
                   onChange={(e) => handleTestFieldChange("title", e.target.value)}
-                  placeholder="Enter test title"
-                  className={`w-full ${formErrors.title ? "border-red-500" : "focus:ring-2 focus:ring-blue-500"}`}
                 />
                 {formErrors.title && <p className="text-sm text-red-500">{formErrors.title}</p>}
               </div>
@@ -177,7 +167,6 @@ const TestForm = ({ onTestCreated }) => {
                   onChange={(e) =>
                     handleTestFieldChange("duration", parseInt(e.target.value) || 0)
                   }
-                  className={`w-full ${formErrors.duration ? "border-red-500" : "focus:ring-2 focus:ring-blue-500"}`}
                 />
                 {formErrors.duration && (
                   <p className="text-sm text-red-500">{formErrors.duration}</p>
@@ -194,7 +183,6 @@ const TestForm = ({ onTestCreated }) => {
                   onChange={(e) =>
                     handleTestFieldChange("total_marks", parseInt(e.target.value) || 0)
                   }
-                  className={`w-full ${formErrors.total_marks ? "border-red-500" : "focus:ring-2 focus:ring-blue-500"}`}
                 />
                 {formErrors.total_marks && (
                   <p className="text-sm text-red-500">{formErrors.total_marks}</p>
@@ -205,9 +193,9 @@ const TestForm = ({ onTestCreated }) => {
                 <Label htmlFor="status">Status</Label>
                 <select
                   id="status"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={test.status}
                   onChange={(e) => handleTestFieldChange("status", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -218,9 +206,9 @@ const TestForm = ({ onTestCreated }) => {
                 <Label htmlFor="type">Test Type</Label>
                 <select
                   id="type"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={test.type}
                   onChange={(e) => handleTestFieldChange("type", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
                 >
                   <option value="free">Free</option>
                   <option value="paid">Paid</option>
@@ -228,19 +216,36 @@ const TestForm = ({ onTestCreated }) => {
               </div>
 
               {test.type === "paid" && (
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <select
-                    id="subject"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={test.subject}
-                    onChange={(e) => handleTestFieldChange("subject", e.target.value)}
-                  >
-                    <option value="NTA">NTA</option>
-                    <option value="UGC NET">UGC NET</option>
-                    <option value="JRF">JRF</option>
-                  </select>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <select
+                      id="subject"
+                      value={test.subject}
+                      onChange={(e) => handleTestFieldChange("subject", e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
+                      <option value="NTA">NTA</option>
+                      <option value="UGC NET">UGC NET</option>
+                      <option value="JRF">JRF</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="model">Model (Optional)</Label>
+                    <select
+                      id="model"
+                      value={test.model}
+                      onChange={(e) => handleTestFieldChange("model", e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
+                      <option value="">-- Select Model --</option>
+                      <option value="PYQ">PYQ</option>
+                      <option value="Mock">Mock</option>
+                      <option value="Sample">Sample</option>
+                    </select>
+                  </div>
+                </>
               )}
             </div>
 
@@ -250,125 +255,76 @@ const TestForm = ({ onTestCreated }) => {
                 id="description"
                 value={test.description}
                 onChange={(e) => handleTestFieldChange("description", e.target.value)}
-                placeholder="Enter test description"
                 rows={4}
-                className="w-full focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </Card>
         </TabsContent>
 
-        <TabsContent value="questions" className="mt-0">
+        <TabsContent value="questions">
           <div className="space-y-6">
             {test.questions.map((q, i) => (
-              <Card
-                key={i}
-                className="p-6 relative bg-white shadow-md rounded-xl border border-gray-200 transition-transform hover:scale-[1.01]"
-              >
+              <Card key={i} className="p-6 relative bg-white border border-gray-200">
                 <button
                   type="button"
                   onClick={() => removeQuestion(i)}
-                  className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                  aria-label="Remove question"
+                  className="absolute top-4 right-4 text-red-500"
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
 
                 <div className="space-y-6">
                   <div>
-                    <Label className="text-lg font-semibold">Question {i + 1}</Label>
+                    <Label>Question {i + 1}</Label>
                     <Textarea
                       value={q.question_text}
                       onChange={(e) => updateQuestionField(i, "question_text", e.target.value)}
-                      placeholder="Enter your question"
                       rows={3}
-                      className={`w-full mt-2 focus:ring-2 focus:ring-blue-500 ${
-                        formErrors.questions?.[i]?.question_text ? "border-red-500" : ""
-                      }`}
                     />
-                    {formErrors.questions?.[i]?.question_text && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {formErrors.questions[i].question_text}
-                      </p>
-                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {q.options.map((opt, j) => (
-                      <div key={j} className="space-y-2">
+                      <div key={j}>
                         <Label>Option {j + 1}</Label>
                         <Input
                           value={opt}
                           onChange={(e) => updateQuestionOption(i, j, e.target.value)}
-                          placeholder={`Enter option ${j + 1}`}
-                          className={`w-full focus:ring-2 focus:ring-blue-500 ${
-                            formErrors.questions?.[i]?.[`option_${j}`]
-                              ? "border-red-500"
-                              : ""
-                          }`}
                         />
-                        {formErrors.questions?.[i]?.[`option_${j}`] && (
-                          <p className="text-sm text-red-500">
-                            {formErrors.questions[i][`option_${j}`]}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    <div>
                       <Label>Correct Answer</Label>
                       <Input
                         value={q.correct_answer}
                         onChange={(e) =>
                           updateQuestionField(i, "correct_answer", e.target.value)
                         }
-                        placeholder="Enter the correct answer"
-                        className={`w-full focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.questions?.[i]?.correct_answer
-                            ? "border-red-500"
-                            : ""
-                        }`}
                       />
-                      {formErrors.questions?.[i]?.correct_answer && (
-                        <p className="text-sm text-red-500">
-                          {formErrors.questions[i].correct_answer}
-                        </p>
-                      )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div>
                       <Label>Marks</Label>
                       <Input
                         type="number"
-                        min="1"
                         value={q.marks}
+                        min="1"
                         onChange={(e) =>
                           updateQuestionField(i, "marks", parseInt(e.target.value) || 1)
                         }
-                        className={`w-full focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.questions?.[i]?.marks ? "border-red-500" : ""
-                        }`}
                       />
-                      {formErrors.questions?.[i]?.marks && (
-                        <p className="text-sm text-red-500">
-                          {formErrors.questions[i].marks}
-                        </p>
-                      )}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div>
                     <Label>Explanation</Label>
                     <Textarea
                       value={q.explanation}
-                      onChange={(e) =>
-                        updateQuestionField(i, "explanation", e.target.value)
-                      }
-                      placeholder="Explain the answer (optional)"
+                      onChange={(e) => updateQuestionField(i, "explanation", e.target.value)}
                       rows={2}
-                      className="w-full focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -379,7 +335,7 @@ const TestForm = ({ onTestCreated }) => {
               type="button"
               onClick={addQuestion}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 border-dashed border-2 border-gray-300 hover:bg-gray-50 transition-colors py-4"
+              className="w-full flex gap-2 justify-center border-dashed"
             >
               <Plus className="h-5 w-5" /> Add Question
             </Button>
@@ -405,22 +361,8 @@ const TestForm = ({ onTestCreated }) => {
       )}
 
       <div className="flex justify-center mt-8">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="min-w-[140px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all"
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Saving...
-            </span>
-          ) : (
-            "Save Test"
-          )}
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Save Test"}
         </Button>
       </div>
     </form>

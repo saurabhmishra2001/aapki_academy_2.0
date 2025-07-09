@@ -13,9 +13,11 @@ const MCQTests = () => {
     const fetchTests = async () => {
       try {
         setLoading(true);
-        // Fetch only MCQ tests of type "paid"
-        const testsData = await testService.getTestsByTypeAndSubject('mcq', null);
-        setTests(testsData);
+        // Fetch only MCQ tests that are not free
+        const testsData = await testService.getTests();
+        // Filter for MCQ tests that are not free
+        const filteredTests = testsData.filter(test => test.type === 'mcq' && test.isPaid === true);
+        setTests(filteredTests);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching MCQ tests:', err);

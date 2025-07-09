@@ -22,15 +22,15 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Courses = React.lazy(() => import('./pages/Courses'));
 const Documents = React.lazy(() => import('./pages/Documents'));
 const Videos = React.lazy(() => import('./pages/Videos'));
-const PYQTests = React.lazy(() => import('./pages/PYQTests'));
-const TestPage = React.lazy(() => import('./pages/TestPage'));
-const TestResult = React.lazy(() => import('./pages/TestResult'));
+const PYQTests = React.lazy(() => import('./pages/pyq/PYQTests'));
+const TestPage = React.lazy(() => import('./pages/pyq/TestPage'));
+const TestResult = React.lazy(() => import('./pages/pyq/TestResult'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const FreeTests = React.lazy(() => import('./pages/FreeTests'));
 const MCQTests = React.lazy(() => import('./pages/MCQTests'));
-const NTATests = React.lazy(() => import('./pages/NTATests'));
-const UGCNETTests = React.lazy(() => import('./pages/UGCNETTests'));
-const JRFTests = React.lazy(() => import('./pages/JRFTests'));
+const NTATests = React.lazy(() => import('./pages/SubjectsWiseTest/NTATests'));
+const UGCNETTests = React.lazy(() => import('./pages/SubjectsWiseTest/UGCNETTests'));
+const JRFTests = React.lazy(() => import('./pages/SubjectsWiseTest/JRFTests'));
 
 
 

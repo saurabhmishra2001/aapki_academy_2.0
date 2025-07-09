@@ -312,6 +312,31 @@ getPaidTests: async ({ subject = null } = {}) => {
   }
 },
 
+// ✅ Get PYQ tests with optional subject filter
+getPyqTests: async () => {
+  try {
+    const q = query(
+      collection(db, 'tests'),
+      where('model', '==', 'PYQ'),
+      where('status', 'in', ['published', 'upcoming'])
+    );
+
+    const querySnapshot = await getDocs(q);
+    const tests = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return tests;
+  } catch (error) {
+    console.error('Error fetching PYQ tests:', error);
+    throw error;
+  }
+},
+
+
+
+
 
 
 };

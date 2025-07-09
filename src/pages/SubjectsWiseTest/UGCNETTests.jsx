@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, Button, CircularProgress, Chip } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import { testService } from '../services/testService';
+import { useAuth } from '../../contexts/AuthContext';
+import { testService } from '../../services/testService';
 
-const JRFTests = () => {
+const UGCNETTests = () => {
   const { user } = useAuth();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,15 +13,16 @@ const JRFTests = () => {
     const fetchTests = async () => {
       try {
         setLoading(true);
-        // Fetch only JRF subject tests that are not free
+        // Fetch all tests and filter for UGC NET subject and paid type
         const testsData = await testService.getTests();
-        // Filter for JRF subject tests that are not free
-        const filteredTests = testsData.filter(test => test.subject === 'JRF' && test.type === 'paid');
+        const filteredTests = testsData.filter(
+          test => test.subject === 'UGC NET' && test.type === 'paid'
+        );
         setTests(filteredTests);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching JRF tests:', err);
-        setError('Failed to load JRF tests. Please try again later.');
+        console.error('Error fetching UGC NET tests:', err);
+        setError('Failed to load UGC NET tests. Please try again later.');
         setLoading(false);
       }
     };
@@ -30,7 +31,6 @@ const JRFTests = () => {
   }, []);
 
   const handleStartTest = (testId) => {
-    // Navigate to test page with the selected test ID
     window.location.href = `/test/${testId}`;
   };
 
@@ -39,7 +39,7 @@ const JRFTests = () => {
       <Container sx={{ py: 4, textAlign: 'center' }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
-          Loading JRF tests...
+          Loading UGC NET tests...
         </Typography>
       </Container>
     );
@@ -63,10 +63,10 @@ const JRFTests = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
-            JRF Subject Tests
+            UGC NET Subject Tests
           </Typography>
           <Typography variant="body1" paragraph>
-            Prepare for Junior Research Fellowship (JRF) exams with our specialized subject-wise tests designed to match the actual exam pattern.
+            Prepare for UGC NET exams with our specialized subject-wise tests designed to match the actual exam pattern.
           </Typography>
         </Box>
         <Chip label="Pro" color="secondary" sx={{ fontSize: '1rem', py: 2, px: 1 }} />
@@ -74,7 +74,7 @@ const JRFTests = () => {
 
       {tests.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6">No JRF tests available at the moment.</Typography>
+          <Typography variant="h6">No UGC NET tests available at the moment.</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             Please check back later or explore our other resources.
           </Typography>
@@ -128,7 +128,7 @@ const JRFTests = () => {
                       <strong>Subject:</strong> {test.subject}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Exam:</strong> JRF
+                      <strong>Type:</strong> {test.type}
                     </Typography>
                     <Typography variant="body2">
                       <strong>Difficulty:</strong> {test.difficulty || 'Advanced'}
@@ -153,4 +153,4 @@ const JRFTests = () => {
   );
 };
 
-export default JRFTests;
+export default UGCNETTests;

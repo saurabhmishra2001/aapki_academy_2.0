@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Grid,
-  Button,
-  CircularProgress,
-  Chip
-} from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import { getTests } from '../services/testService';
 
-const UGCNETTests = () => {
+import React, { useState, useEffect } from 'react'; 
+import { Container, Typography, Box, Paper, Grid, Button, CircularProgress, Chip } from '@mui/material';
+import { useAuth } from '../../contexts/AuthContext';
+import { testService } from '../../services/testService';
+
+const NTATests = () => {
   const { user } = useAuth();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +14,15 @@ const UGCNETTests = () => {
     const fetchTests = async () => {
       try {
         setLoading(true);
-        // ✅ Fetch only UGC NET subject tests of type "paid"
-        const testsData = await getTests({ subject: 'UGC NET', type: 'paid' });
-        setTests(testsData);
+        // ✅ Fetch only NTA subject tests of type "paid"
+        const testsData = await testService.getTests();
+        // Filter for NTA subject tests that are paid
+        const filteredTests = testsData.filter(test => test.subject === 'NTA' && test.type === 'paid');
+        setTests(filteredTests);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching UGC NET tests:', err);
-        setError('Failed to load UGC NET tests. Please try again later.');
+        console.error('Error fetching NTA tests:', err);
+        setError('Failed to load NTA tests. Please try again later.');
         setLoading(false);
       }
     };
@@ -45,7 +39,7 @@ const UGCNETTests = () => {
       <Container sx={{ py: 4, textAlign: 'center' }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
-          Loading UGC NET tests...
+          Loading NTA tests...
         </Typography>
       </Container>
     );
@@ -69,10 +63,10 @@ const UGCNETTests = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
-            UGC NET Subject Tests
+            NTA Subject Tests
           </Typography>
           <Typography variant="body1" paragraph>
-            Prepare for UGC NET exams with our specialized subject-wise tests designed to match the actual exam pattern.
+            Prepare for NTA exams with our specialized subject-wise tests designed to match the actual exam pattern.
           </Typography>
         </Box>
         <Chip label="Pro" color="secondary" sx={{ fontSize: '1rem', py: 2, px: 1 }} />
@@ -80,7 +74,7 @@ const UGCNETTests = () => {
 
       {tests.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6">No UGC NET tests available at the moment.</Typography>
+          <Typography variant="h6">No NTA tests available at the moment.</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             Please check back later or explore our other resources.
           </Typography>
@@ -137,7 +131,7 @@ const UGCNETTests = () => {
                       <strong>Type:</strong> {test.type}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Difficulty:</strong> {test.difficulty || 'Advanced'}
+                      <strong>Difficulty:</strong> {test.difficulty || 'Intermediate'}
                     </Typography>
                   </Box>
                 </Box>
@@ -159,4 +153,4 @@ const UGCNETTests = () => {
   );
 };
 
-export default UGCNETTests;
+export default NTATests;
