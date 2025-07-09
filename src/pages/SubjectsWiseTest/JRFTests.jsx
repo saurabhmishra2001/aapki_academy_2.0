@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, Button, CircularProgress, Chip } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { testService } from '../../services/testService';
+import { useNavigate } from "react-router-dom";
 
 const JRFTests = () => {
   const { user } = useAuth();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -28,11 +31,10 @@ const JRFTests = () => {
 
     fetchTests();
   }, []);
-
   const handleStartTest = (testId) => {
-    // Navigate to test page with the selected test ID
-    window.location.href = `/test/${testId}`;
+    navigate(`/start-tests/${testId}`);
   };
+
 
   if (loading) {
     return (

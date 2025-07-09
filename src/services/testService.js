@@ -420,19 +420,31 @@ getPyqTests: async () => {
     }
   },
 
-  async getLeaderboard(testId) {
-    try {
-      const attemptsQuery = query(
-        collection(db, 'user_test_attempts'),
-        where('testId', '==', testId),
-        orderBy('score', 'desc')
-      );
-      const attemptsSnap = await getDocs(attemptsQuery);
+async getLeaderboard(testId) {
+  try {
+    const attemptsQuery = query(
+      collection(db, 'user_test_attempts'),
+      where('testId', '==', testId),
+      orderBy('score', 'desc')
+    );
+    const attemptsSnap = await getDocs(attemptsQuery);
 
-      const leaderboard = await Promise.all(attemptsSnap.docs.map(async (docSnap) => {
+    const leaderboard = await Promise.all(
+      attemptsSnap.docs.map(async (docSnap) => {
         const data = docSnap.data();
-        const userDoc = await getDoc(doc(db, 'users', data.userId));
-        const userData = userDoc.exists() ? userDoc.data() : { name: 'Anonymous' };
+
+        // Default user name
+        let userName = 'Anonymous';
+
+        try {
+          const userDoc = await getDoc(doc(db, 'users', data.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userName = userData.displayName || userData.email || 'Anonymous';
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch user info for ${data.userId}:`, err);
+        }
 
         const timeTaken = data.endTime && data.startTime
           ? (data.endTime.toDate() - data.startTime.toDate()) / 1000
@@ -440,18 +452,65 @@ getPyqTests: async () => {
 
         return {
           userId: data.userId,
-          userName: userData.name || 'Anonymous',
+          userName,
           score: data.score,
           timeTaken,
         };
-      }));
+      })
+    );
 
-      return leaderboard;
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error);
-      throw error;
-    }
-  },
+    return leaderboard;
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    throw error;
+  }
+},
+
+async getLeaderboard(testId) {
+  try {
+    const attemptsQuery = query(
+      collection(db, 'user_test_attempts'),
+      where('testId', '==', testId),
+      orderBy('score', 'desc')
+    );
+    const attemptsSnap = await getDocs(attemptsQuery);
+
+    const leaderboard = await Promise.all(
+      attemptsSnap.docs.map(async (docSnap) => {
+        const data = docSnap.data();
+
+        // Default user name
+        let userName = 'Anonymous';
+
+        try {
+          const userDoc = await getDoc(doc(db, 'users', data.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userName = userData.displayName || userData.email || 'Anonymous';
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch user info for ${data.userId}:`, err);
+        }
+
+        const timeTaken = data.endTime && data.startTime
+          ? (data.endTime.toDate() - data.startTime.toDate()) / 1000
+          : 0;
+
+        return {
+          userId: data.userId,
+          userName,
+          score: data.score,
+          timeTaken,
+        };
+      })
+    );
+
+    return leaderboard;
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    throw error;
+  }
+},
 
 
 

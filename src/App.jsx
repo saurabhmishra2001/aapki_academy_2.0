@@ -79,7 +79,7 @@ function AppContent() {
               <Route path="/documents" element={<PrivateRoute><Documents /></PrivateRoute>} />
               <Route path="/videos" element={<PrivateRoute><Videos /></PrivateRoute>} />
               <Route path="/pyq-tests" element={<PrivateRoute><PYQTests /></PrivateRoute>} />
-              <Route path="/pyq-tests/:testId" element={<PrivateRoute><TestPage /></PrivateRoute>} />
+              <Route path="/start-tests/:testId" element={<PrivateRoute><TestPage /></PrivateRoute>} />
               <Route path="/test-result/:attemptId" element={<PrivateRoute><TestResult /></PrivateRoute>} />
               <Route path="/free-tests" element={<PrivateRoute><FreeTests /></PrivateRoute>} />
               <Route path="/mcq-tests" element={<PrivateRoute><MCQTests /></PrivateRoute>} />

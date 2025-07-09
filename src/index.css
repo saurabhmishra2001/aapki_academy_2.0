@@ -48,6 +48,25 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem
   }
+
+  /* In your global.css or TestResult.css */
+.bar-label {
+  fill: #111827;
+  font-size: 12px;
+}
+
+.recharts-tooltip-cursor {
+  fill: rgba(59, 130, 246, 0.2); /* Light blue highlight on hover */
+}
+
+.recharts-axis .recharts-cartesian-axis-tick text {
+  font-size: 12px;
+  fill: #4b5563; /* Tailwind gray-600 */
+}
+
+.recharts-wrapper {
+  outline: none !important;
+}
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
