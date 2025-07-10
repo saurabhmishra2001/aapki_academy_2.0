@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useThemeContext } from '../contexts/ThemeContext';
@@ -76,6 +76,16 @@ export default function Navbar() {
       console.error('Error logging out:', error);
     }
   };
+
+  const [localProfilePic, setLocalProfilePic] = useState('');
+
+
+  useEffect(() => {
+  if (user?.uid) {
+    const storedImage = localStorage.getItem(`profilePic-${user.uid}`);
+    if (storedImage) setLocalProfilePic(storedImage);
+  }
+}, [user]);
 
   // Navigation items
   const userNavItems = [
@@ -407,13 +417,13 @@ export default function Navbar() {
                   onClick={handleUserMenuOpen}
                   sx={{ p: 0, ml: 1 }}
                 >
-                  <Avatar
-                    alt={user.displayName}
-                    src={user.photoURL}
-                    sx={{ width: 32, height: 32 }}
-                  >
-                    {user.displayName?.[0]}
-                  </Avatar>
+              <Avatar
+  alt={user.displayName || user.email}
+  src={localProfilePic || user.photoURL || ''}
+  sx={{ width: 32, height: 32 }}
+>
+  {(user.displayName || user.email)?.[0]?.toUpperCase()}
+</Avatar>
                 </IconButton>
                 <Menu
                   anchorEl={userMenuAnchor}

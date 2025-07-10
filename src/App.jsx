@@ -31,6 +31,7 @@ const MCQTests = React.lazy(() => import('./pages/MCQTests'));
 const NTATests = React.lazy(() => import('./pages/SubjectsWiseTest/NTATests'));
 const UGCNETTests = React.lazy(() => import('./pages/SubjectsWiseTest/UGCNETTests'));
 const JRFTests = React.lazy(() => import('./pages/SubjectsWiseTest/JRFTests'));
+const UserProfile = React.lazy(() => import('./components/dashboard/UserProfile'));
 
 
 
@@ -86,7 +87,7 @@ function AppContent() {
               <Route path="/nta-tests" element={<PrivateRoute><NTATests /></PrivateRoute>} />
               <Route path="/ugcnet-tests" element={<PrivateRoute><UGCNETTests /></PrivateRoute>} />
               <Route path="/jrf-tests" element={<PrivateRoute><JRFTests /></PrivateRoute>} />
-
+              <Route path="/profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
