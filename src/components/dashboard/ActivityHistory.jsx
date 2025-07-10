@@ -1,52 +1,46 @@
-// ActivityHistory.js
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs
+} from 'firebase/firestore';
 import { db } from '../../utils/firebaseConfig';
 import {
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Box,
-  CircularProgress
+  Card, CardContent, Typography, List, ListItem,
+  ListItemText, Divider, Box, CircularProgress, Chip
 } from '@mui/material';
+import { Assignment, Login, Update } from '@mui/icons-material';
 
 export default function ActivityHistory() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { user } = useAuth();
 
+  const activityIcons = {
+    test: <Assignment fontSize="small" color="primary" />,
+    login: <Login fontSize="small" color="success" />,
+    update: <Update fontSize="small" color="warning" />
+  };
+
   useEffect(() => {
-    if (user) {
-      fetchActivities();
-    }
+    if (user?.uid) fetchActivities(user.uid);
   }, [user]);
 
-  const fetchActivities = async () => {
+  const fetchActivities = async (uid) => {
     try {
-      const activitiesQuery = query(
+      const q = query(
         collection(db, 'activities'),
-        where('user_id', '==', user.uid),
-        orderBy('created_at', 'desc'),
-        limit(10)
+        where('userId', '==', uid),
+        orderBy('createdAt', 'desc')
       );
-
-      const querySnapshot = await getDocs(activitiesQuery);
-      const activityList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      setActivities(activityList);
-      setError(null);
+      const snap = await getDocs(q);
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setActivities(data);
     } catch (err) {
       console.error('Error fetching activities:', err);
-      setError('Failed to load activity history');
     } finally {
       setLoading(false);
     }
@@ -60,36 +54,42 @@ export default function ActivityHistory() {
     );
   }
 
-  if (error) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
   return (
     <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Recent Activity
+          Recent Activities
         </Typography>
         <List>
-          {activities.map((activity, index) => (
-            <Box key={activity.id}>
-              <ListItem>
-                <ListItemText
-                  primary={activity.description}
-                  secondary={new Date(activity.created_at).toLocaleString()}
-                />
-              </ListItem>
-              {index < activities.length - 1 && <Divider />}
-            </Box>
-          ))}
-          {activities.length === 0 && (
-            <ListItem>
-              <ListItemText primary="No recent activity" />
-            </ListItem>
+          {activities.length === 0 ? (
+            <ListItem><ListItemText primary="No recent activity" /></ListItem>
+          ) : (
+            activities.map((activity, index) => (
+              <Box key={activity.id}>
+                <ListItem>
+                  {activityIcons[activity.type] || <Assignment fontSize="small" />}
+                  <ListItemText
+                    primary={
+                      <div className="flex items-center justify-between">
+                        <span>{activity.description}</span>
+                        <Chip
+                          label={activity.type}
+                          size="small"
+                          variant="outlined"
+                          className="ml-4"
+                        />
+                      </div>
+                    }
+                    secondary={
+                      activity.createdAt?.toDate
+                        ? activity.createdAt.toDate().toLocaleString()
+                        : 'Time not available'
+                    }
+                  />
+                </ListItem>
+                {index < activities.length - 1 && <Divider />}
+              </Box>
+            ))
           )}
         </List>
       </CardContent>
